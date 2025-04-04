@@ -37,7 +37,14 @@ Before deploying, ensure you have:
 
 The application is ready for deployment on various platforms:
 
-- **Render**: Use the included Procfile and requirements.txt for easy deployment.
+- **Render.com** (Recommended): 
+  1. Create a new Web Service on Render
+  2. Connect your GitHub repository
+  3. Choose "Python" as the environment
+  4. Set the build command: `pip install -r requirements.txt`
+  5. Set the start command: `gunicorn main:app --bind 0.0.0.0:$PORT`
+  6. Add all environment variables from `.env.example`
+  7. Click "Create Web Service"
 - **Heroku**: Follow standard Python app deployment with the included Procfile.
 - **DigitalOcean App Platform**: Deploy directly from GitHub with Python runtime configuration.
 
