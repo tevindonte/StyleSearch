@@ -33,7 +33,24 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 # Initialize OpenAI client
-openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+try:
+    # For newer versions of OpenAI library (without proxies parameter)
+    openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+except TypeError as e:
+    if 'unexpected keyword argument' in str(e) and 'proxies' in str(e):
+        # Handle compatibility with older versions or environment issues
+        import httpx
+        # Create compatible client without proxy settings
+        openai_client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            http_client=httpx.Client(
+                base_url="https://api.openai.com/v1",
+                follow_redirects=True,
+                timeout=60.0
+            )
+        )
+    else:
+        raise
 
 # Create Flask app
 app = Flask(__name__)
