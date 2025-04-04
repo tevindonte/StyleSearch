@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fashion Stylist - {% block title %}{% endblock %}</title>
+    <title>Style Search - {% block title %}{% endblock %}</title>
     
     <!-- Replit-themed Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
@@ -20,8 +20,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-tshirt me-2"></i>
-                Fashion Stylist
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Style Search Logo" height="30" class="d-inline-block align-top me-2">
+                Style Search
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -76,7 +76,7 @@
 
     <footer class="footer mt-5 py-3 bg-dark">
         <div class="container text-center">
-            <small class="text-muted">Fashion Stylist App &copy; 2023</small>
+            <small class="text-muted">Style Search <small class="text-muted">Fashion Stylist App &copy; 2023</small>copy; 2024</small>
         </div>
     </footer>
 
