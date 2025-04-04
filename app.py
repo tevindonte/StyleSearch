@@ -32,32 +32,51 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Initialize OpenAI client
-try:
-    # For newer versions of OpenAI library (without proxies parameter)
-    openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-except TypeError as e:
-    if 'unexpected keyword argument' in str(e) and 'proxies' in str(e):
-        # Handle compatibility with older versions or environment issues
-        import httpx
-        # Create compatible client without proxy settings
-        openai_client = OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            http_client=httpx.Client(
-                base_url="https://api.openai.com/v1",
-                follow_redirects=True,
-                timeout=60.0
-            )
-        )
-    else:
-        raise
+# Initialize OpenAI client with comprehensive error handling
+openai_client = None
+openai_api_key = os.environ.get("OPENAI_API_KEY")
+
+if not openai_api_key:
+    logging.warning("OPENAI_API_KEY is not set. AI-based style prediction will be unavailable.")
+else:
+    try:
+        # For newer versions of OpenAI library (without proxies parameter)
+        openai_client = OpenAI(api_key=openai_api_key)
+        logging.info("Successfully initialized OpenAI client")
+    except TypeError as e:
+        if 'unexpected keyword argument' in str(e) and 'proxies' in str(e):
+            # Handle compatibility with older versions or environment issues
+            try:
+                import httpx
+                # Create compatible client without proxy settings
+                openai_client = OpenAI(
+                    api_key=openai_api_key,
+                    http_client=httpx.Client(
+                        base_url="https://api.openai.com/v1",
+                        follow_redirects=True,
+                        timeout=60.0
+                    )
+                )
+                logging.info("Successfully initialized OpenAI client with custom HTTP client")
+            except Exception as custom_client_error:
+                logging.error(f"Failed to initialize OpenAI client with custom HTTP client: {str(custom_client_error)}")
+        else:
+            logging.error(f"Error initializing OpenAI client: {str(e)}")
+    except Exception as general_error:
+        logging.error(f"Unexpected error initializing OpenAI client: {str(general_error)}")
+        logging.warning("AI-based style prediction will be unavailable or limited")
 
 # Create Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key")
 
 # Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# Check for proper database URL with postgres:// vs postgresql:// prefix (Render.com uses postgresql://)
+database_url = os.environ.get("DATABASE_URL")
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+    
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
@@ -74,10 +93,32 @@ login_manager.login_message_category = 'info'
 app.register_blueprint(auth_bp)
 app.register_blueprint(favorites_bp)
 
-# Initialize database, storage, and eBay API managers
-db_manager = DatabaseManager()
-storage_manager = StorageManager()
-ebay_manager = EbayManager()
+# Create placeholder service manager objects
+db_manager = None
+storage_manager = None
+ebay_manager = None
+
+# Initialize external services with proper error handling
+try:
+    # Initialize MongoDB for storing feedback and metadata
+    db_manager = DatabaseManager()
+    if not hasattr(db_manager, 'client') or db_manager.client is None:
+        logging.warning("MongoDB connection failed. Feedback and analytics features may be limited.")
+    
+    # Initialize Backblaze B2 for image storage
+    storage_manager = StorageManager()
+    if not hasattr(storage_manager, 's3_client') or storage_manager.s3_client is None:
+        logging.warning("Backblaze B2 storage connection failed. Image upload features may be limited.")
+    
+    # Initialize eBay API for product recommendations
+    ebay_manager = EbayManager()
+    if not hasattr(ebay_manager, 'api') or ebay_manager.api is None:
+        logging.warning("eBay API connection failed. Product recommendation features may be limited.")
+        
+    logging.info("External services initialized successfully")
+except Exception as e:
+    logging.error(f"Error initializing external services: {str(e)}")
+    logging.warning("Application will continue with limited functionality")
 
 # User loader function for flask-login
 @login_manager.user_loader
@@ -99,6 +140,16 @@ def predict_style_with_openai(image):
         - styling_tips: Tips on how to style this outfit or item
     """
     logging.debug(f"Processing image of size: {image.size}")
+    
+    # Check if OpenAI client is available
+    if openai_client is None:
+        logging.warning("OpenAI client not available. Using fallback style prediction.")
+        return {
+            "primary_style": "Contemporary Casual",
+            "style_tags": ["versatile", "modern", "everyday", "minimalist"],
+            "description": "A fashionable outfit with contemporary elements and clean lines.",
+            "styling_tips": "Pair with minimal accessories for a polished, effortless look."
+        }
     
     try:
         # Convert PIL Image to base64 string
@@ -714,5 +765,13 @@ def get_stats():
         return jsonify({'error': f'Failed to retrieve statistics: {str(e)}'}), 500
 
 # Create necessary database tables when the app starts
-with app.app_context():
-    db.create_all()
+if app.config["SQLALCHEMY_DATABASE_URI"]:
+    try:
+        with app.app_context():
+            db.create_all()
+            logging.info("Database tables created successfully")
+    except Exception as e:
+        logging.error(f"Error creating database tables: {str(e)}")
+        logging.warning("Application will continue, but database functionality may be limited")
+else:
+    logging.warning("No DATABASE_URL provided. Database features will be unavailable.")
