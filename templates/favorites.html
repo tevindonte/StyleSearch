@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+
+{% block title %}My Favorites - Fashion Style Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">My Saved Styles</h1>
+    
+    {% if not favorites %}
+    <div class="alert alert-info">
+        <p class="mb-0">You haven't saved any style predictions yet. Upload an image on the home page to get started!</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Upload an Image</a>
+    {% else %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for favorite in favorites %}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <img src="{{ favorite.prediction.image_path }}" class="card-img-top favorites-card-img" alt="{{ favorite.prediction.primary_style }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ favorite.prediction.primary_style }}</h5>
+                    <div class="mb-3">
+                        {% for tag in favorite.prediction.style_tags|from_json %}
+                        <span class="badge bg-secondary">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    <p class="card-text">
+                        <small class="text-muted">Saved on {{ favorite.added_at.strftime('%B %d, %Y') }}</small>
+                    </p>
+                    
+                    <div class="notes-section mb-3">
+                        <h6>Notes</h6>
+                        <form class="edit-notes-form" data-favorite-id="{{ favorite.id }}">
+                            <div class="input-group mb-2">
+                                <textarea class="form-control notes-input" rows="2">{{ favorite.notes or '' }}</textarea>
+                                <button class="btn btn-outline-primary save-notes-btn" type="submit">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-danger remove-favorite-btn" data-favorite-id="{{ favorite.id }}">
+                            <i class="fas fa-trash-alt me-1"></i> Remove
+                        </button>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-1"></i> Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Handle removing favorites
+document.querySelectorAll('.remove-favorite-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const favoriteId = this.getAttribute('data-favorite-id');
+        if (confirm('Are you sure you want to remove this style from your favorites?')) {
+            fetch(`/favorites/remove/${favoriteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Remove the card from the DOM
+                    this.closest('.col').remove();
+                    
+                    // If no favorites left, show the empty state
+                    if (document.querySelectorAll('.col').length === 0) {
+                        location.reload();
+                    }
+                }
+            });
+        }
+    });
+});
+
+// Handle updating notes
+document.querySelectorAll('.edit-notes-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const favoriteId = this.getAttribute('data-favorite-id');
+        const notes = this.querySelector('.notes-input').value;
+        
+        fetch(`/favorites/update/${favoriteId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ notes: notes })
+        })
+        .then(response => {
+            if (response.ok) {
+                // Show success indicator
+                const saveButton = this.querySelector('.save-notes-btn');
+                const originalText = saveButton.textContent;
+                saveButton.innerHTML = '<i class="fas fa-check"></i>';
+                saveButton.classList.add('btn-success');
+                saveButton.classList.remove('btn-outline-primary');
+                
+                // Reset button after a delay
+                setTimeout(() => {
+                    saveButton.textContent = originalText;
+                    saveButton.classList.remove('btn-success');
+                    saveButton.classList.add('btn-outline-primary');
+                }, 2000);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

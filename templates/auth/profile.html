@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent py-3">
+                    <h2 class="mb-0">My Profile</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.profile') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {% if form.username.errors %}
+                                {{ form.username(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.username(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {% if form.email.errors %}
+                                {{ form.email(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.email(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h5>Change Password</h5>
+                        <p class="text-muted mb-3">Leave blank if you don't want to change your password</p>
+                        
+                        <div class="mb-3">
+                            {{ form.current_password.label(class="form-label") }}
+                            {% if form.current_password.errors %}
+                                {{ form.current_password(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.current_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.current_password(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.new_password.label(class="form-label") }}
+                            {% if form.new_password.errors %}
+                                {{ form.new_password(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.new_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.new_password(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.confirm_password.label(class="form-label") }}
+                            {% if form.confirm_password.errors %}
+                                {{ form.confirm_password(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.confirm_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.confirm_password(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0">Account Statistics</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="display-4 mb-2">{{ stats.predictions }}</div>
+                                <div class="text-muted">Style Predictions</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="display-4 mb-2">{{ stats.favorites }}</div>
+                                <div class="text-muted">Saved Favorites</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="display-4 mb-2">{{ stats.feedback }}</div>
+                                <div class="text-muted">Feedback Given</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent text-center py-3">
+                    <small class="text-muted">Member since {{ current_user.created_at.strftime('%B %d, %Y') }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+E-Commerce Integration
+Real API Integration:
+Replace the placeholder product recommendations with real-time queries to eBay’s API (or another affiliate partner).
+Affiliate Linking:
+Ensure that product links include your affiliate tracking so that recommendations become revenue opportunities.
+
+is there anything you need from me to achieve this
+
+User Feedback Loop & Data Storage
+Feedback Collection:
+Refine your “Was this accurate?” and comment system to capture detailed user feedback on predictions and outfit suggestions.
+
+Database Integration:
+Set up a database MongoDB) to store user feedback and usage patterns.
+
+Iterative Improvement:
+Use this data to re-train or fine-tune your models periodically.
+
+As for storing user
+Connect to Verbalit
+Copy your connection string below.
+
+Select database user
+
+Connection string
+jmcanboy (SCRAM)
+mongodb+srv://jmcanboy:<db_password>@verbalit.pkqcqm6.mongodb.net/?retryWrites=true&w=majority&appName=Verbalit
+
+Replace <db_password> with the password for the jmcanboy user. Ensure any option params are URL encoded.
+
+Storing images for backblaze to use imporove the model
+deeplearndataCreated:March 26, 2025
+Bucket ID:074dcaf92c8bd3409d5e0012
+Type:Private
+File Lifecycle:Keep all versions
+Snapshots:0
+Current Files:0
+Current Size:0 bytes
+Endpoint:s3.us-east-005.backblazeb2.com
+Encryption:Disabled
+Upload/Download
+Bucket Settings Bucket Settings
+Lifecycle Settings Lifecycle Settings
+CORS Rules CORS Rules
+Object Lock Object Lock: disabled
+Event Notifications Event Notifications
+
+Success! Your new application key has been created. It will only appear here once.
+Cloud Storage for Images:
+Use a solution like Backblaze B2 for efficient, scalable storage. Save images with unique identifiers, and reference these identifiers in your database.
+
+Database for Metadata:
+Store user feedback, predicted labels, and the image’s unique ID in a database. This way, you can correlate feedback with the actual images without needing to query the image files directly.
+
+Iterative Model Improvement:
+Periodically, you can pull images (and their associated data) that received negative feedback or were misclassified. This curated set can be used to re-train or fine-tune your model.
+keyID:
+0057da9cb30de020000000004
+keyName:
+access-deep-learn
+applicationKey:
+K0054WiZj2z+pOYMBBz2CVuPlrzMZ/o
+
+Hybrid Style Classification Enhancements
+Model Fine-Tuning:
+Even though your current model works, consider unfreezing parts of the backbone networks (ResNet/CLIP) or training longer to boost accuracy.
+Multimodal Fusion Optimization:
+Experiment with alternative fusion strategies or adjust the weight given to metadata versus visual features, especially as you refine the metadata further.
+
+Outfit Combination Generator
+Context-Aware Recommendations:
+Develop logic (or a model) that assembles full outfits rather than single items—taking into account user context (e.g., occasion, season) and the individual pieces’ compatibility.
+Component Breakdown:
+Enhance the system so that if a user uploads an image of one item, it suggests complementary pieces to complete the look.
+
+Frontend & UX Improvements
+Enhanced User Interface:
+Improve the look and feel of your app’s frontend (using frameworks like React or Bootstrap) to display not only predictions but also outfit combinations and product recommendations.
+Interactive Features:
+Add elements like real-time previews, detailed style breakdowns, and the ability to modify or customize recommendations.

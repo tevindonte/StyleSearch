@@ -1,0 +1,89 @@
+/* Additional custom styles beyond Bootstrap */
+
+/* Make style tags wrap better */
+.badge {
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Improve drag and drop area */
+.upload-area {
+    transition: all 0.3s ease;
+    min-height: 200px;
+}
+
+.upload-area.highlight {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-color: var(--bs-primary) !important;
+}
+
+/* Animated elements */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Star rating display */
+.star-rating {
+    color: var(--bs-warning);
+}
+
+/* Product cards */
+.product-card {
+    transition: transform 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card .card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Attributes badges */
+.attribute-badge {
+    background-color: rgba(var(--bs-info-rgb), 0.15);
+    color: var(--bs-info);
+    border: 1px solid rgba(var(--bs-info-rgb), 0.3);
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+/* Custom styling for favorites list */
+.favorites-card-img {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Improved footer */
+.footer {
+    margin-top: 4rem;
+}
+
+/* Custom styling for form focus */
+.form-control:focus, .btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* User dropdown styling */
+.dropdown-menu {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item:active {
+    background-color: var(--bs-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .product-card .card-img-top {
+        height: 150px;
+    }
+}
