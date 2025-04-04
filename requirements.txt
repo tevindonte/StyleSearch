@@ -19,3 +19,4 @@ scikit-learn==1.4.1.post1
 SQLAlchemy==2.0.32
 Werkzeug==3.0.2
 WTForms==3.1.2
+httpx

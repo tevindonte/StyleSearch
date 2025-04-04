@@ -21,7 +21,24 @@ from openai import OpenAI
 
 # Initialize OpenAI client
 openai_api_key = os.environ.get('OPENAI_API_KEY')
-openai_client = OpenAI(api_key=openai_api_key)
+try:
+    # For newer versions of OpenAI library (without proxies parameter)
+    openai_client = OpenAI(api_key=openai_api_key)
+except TypeError as e:
+    if 'unexpected keyword argument' in str(e) and 'proxies' in str(e):
+        # Handle compatibility with older versions or environment issues
+        import httpx
+        # Create compatible client without proxy settings
+        openai_client = OpenAI(
+            api_key=openai_api_key,
+            http_client=httpx.Client(
+                base_url="https://api.openai.com/v1",
+                follow_redirects=True,
+                timeout=60.0
+            )
+        )
+    else:
+        raise
 
 # Define style categories for CLIP comparison
 STYLE_CATEGORIES = [
