@@ -10,6 +10,16 @@
                 <h1 class="mb-4">Fashion Stylist</h1>
                 <p class="lead mb-4">Upload an image of an outfit or fashion item and get style recommendations!</p>
                 
+                <div id="apiKeyStatus" class="alert alert-warning mb-4 d-none" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="apiKeyStatusMessage">OpenAI API key issue detected.</span>
+                    <div class="mt-2">
+                        <button id="refreshApiKeyBtn" class="btn btn-sm btn-warning">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh API Connection
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="upload-area mb-4 p-5 rounded border border-secondary d-flex flex-column align-items-center justify-content-center" id="upload-area">
                     <i class="fas fa-cloud-upload-alt fa-4x mb-3 text-secondary"></i>
                     <p class="mb-3">Drag and drop an image here or click to browse</p>

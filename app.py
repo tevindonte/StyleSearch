@@ -36,20 +36,42 @@ logging.basicConfig(level=logging.DEBUG)
 openai_client = None
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 
-if not openai_api_key:
-    logging.warning("OPENAI_API_KEY is not set. AI-based style prediction will be unavailable.")
-else:
+def init_openai_client():
+    """Initialize the OpenAI client with proper error handling and validation"""
+    global openai_client, openai_api_key
+    
+    # Refresh the API key from environment in case it was updated
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    
+    if not openai_api_key:
+        logging.warning("OPENAI_API_KEY is not set. AI-based style prediction will be unavailable.")
+        return None
+        
     try:
         # For newer versions of OpenAI library (without proxies parameter)
-        openai_client = OpenAI(api_key=openai_api_key)
-        logging.info("Successfully initialized OpenAI client")
+        client = OpenAI(api_key=openai_api_key)
+        
+        # Validate the API key with a simple, low-cost API call
+        try:
+            # Use models.list as it's a lightweight API call for validation
+            # The limit parameter is not needed and may not be supported in all versions
+            client.models.list()
+            logging.info("Successfully initialized and validated OpenAI client")
+            return client
+        except Exception as validation_error:
+            if "insufficient_quota" in str(validation_error):
+                logging.error(f"OpenAI API key has insufficient quota: {str(validation_error)}")
+            else:
+                logging.error(f"OpenAI API key validation failed: {str(validation_error)}")
+            return None
+            
     except TypeError as e:
         if 'unexpected keyword argument' in str(e) and 'proxies' in str(e):
             # Handle compatibility with older versions or environment issues
             try:
                 import httpx
                 # Create compatible client without proxy settings
-                openai_client = OpenAI(
+                client = OpenAI(
                     api_key=openai_api_key,
                     http_client=httpx.Client(
                         base_url="https://api.openai.com/v1",
@@ -57,14 +79,38 @@ else:
                         timeout=60.0
                     )
                 )
-                logging.info("Successfully initialized OpenAI client with custom HTTP client")
+                
+                # Validate the API key
+                try:
+                    client.models.list()
+                    logging.info("Successfully initialized and validated OpenAI client with custom HTTP client")
+                    return client
+                except Exception as validation_error:
+                    if "insufficient_quota" in str(validation_error):
+                        logging.error(f"OpenAI API key has insufficient quota: {str(validation_error)}")
+                    else:
+                        logging.error(f"OpenAI API key validation failed: {str(validation_error)}")
+                    return None
+                    
             except Exception as custom_client_error:
                 logging.error(f"Failed to initialize OpenAI client with custom HTTP client: {str(custom_client_error)}")
+                return None
         else:
             logging.error(f"Error initializing OpenAI client: {str(e)}")
+            return None
+            
     except Exception as general_error:
         logging.error(f"Unexpected error initializing OpenAI client: {str(general_error)}")
         logging.warning("AI-based style prediction will be unavailable or limited")
+        return None
+
+# Initialize the OpenAI client
+openai_client = init_openai_client()
+
+# Share the OpenAI client with the hybrid_classifier module
+import hybrid_classifier
+if openai_client is not None:
+    hybrid_classifier.set_openai_client(openai_client)
 
 # Create Flask app
 app = Flask(__name__)
@@ -92,6 +138,34 @@ login_manager.login_message_category = 'info'
 # Register blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(favorites_bp)
+
+# Add a route to refresh the OpenAI client when a new API key is provided
+@app.route('/refresh-openai', methods=['GET'])
+def refresh_openai_client():
+    """
+    Refresh the OpenAI client with a new API key from environment variables.
+    This is useful when a new API key is provided while the app is running.
+    
+    Returns:
+        JSON response with status and message
+    """
+    global openai_client
+    
+    # Reinitialize the OpenAI client
+    openai_client = init_openai_client()
+    
+    # Share the OpenAI client with the hybrid_classifier module
+    if openai_client is not None:
+        hybrid_classifier.set_openai_client(openai_client)
+        return jsonify({
+            'status': 'success',
+            'message': 'OpenAI client refreshed successfully'
+        })
+    else:
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to refresh OpenAI client. Check logs for details.'
+        })
 
 # Create placeholder service manager objects
 db_manager = None
@@ -649,8 +723,18 @@ def predict():
         return jsonify(response)
     
     except Exception as e:
-        logging.error(f"Error in style prediction: {str(e)}")
-        return jsonify({'error': f'Style prediction failed: {str(e)}'}), 500
+        error_message = str(e)
+        logging.error(f"Error in style prediction: {error_message}")
+        
+        # Check if it's an OpenAI API-related error
+        if "openai" in error_message.lower() or "api key" in error_message.lower() or "quota" in error_message.lower():
+            # Make the error message more user-friendly
+            user_message = "OpenAI API issue detected. Please check your API key or try refreshing the connection."
+            logging.warning("OpenAI API error detected, suggesting refresh")
+            return jsonify({'error': user_message, 'type': 'openai_error'}), 500
+        else:
+            # Generic error message for other errors
+            return jsonify({'error': f'Style prediction failed: {error_message}'}), 500
 
 @app.route('/feedback', methods=['POST'])
 def submit_feedback():
