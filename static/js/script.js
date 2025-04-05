@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const previewImage = document.getElementById('imagePreview');
     const browseButton = document.getElementById('browseButton');
     
+    // Track if we're already handling a file selection to prevent double triggering
+    let isProcessingFile = false;
+    
     if (uploadInput) {
         // Handle drag over events
         uploadArea.addEventListener('dragover', function(e) {
@@ -34,15 +37,24 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Handle file input change
         uploadInput.addEventListener('change', function() {
-            if (this.files.length) {
+            if (this.files.length && !isProcessingFile) {
+                isProcessingFile = true;
                 displayImagePreview(this.files[0]);
+                // Reset the flag after a short delay
+                setTimeout(() => {
+                    isProcessingFile = false;
+                }, 500);
             }
         });
         
         // Handle browse button click
         if (browseButton) {
-            browseButton.addEventListener('click', function() {
-                uploadInput.click();
+            browseButton.addEventListener('click', function(e) {
+                // Prevent event from bubbling up
+                e.stopPropagation();
+                if (!isProcessingFile) {
+                    uploadInput.click();
+                }
             });
         }
         
