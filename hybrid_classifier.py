@@ -63,9 +63,12 @@ def preprocess_image(image):
             
         # Resize image if needed (OpenAI API accepts any size)
         max_size = 1024
-    if max(image.size) > max_size:
-        ratio = max_size / max(image.size)
-        new_size = tuple([int(s * ratio) for s in image.size])
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = tuple([int(s * ratio) for s in image.size])
+    except Exception as e:
+        print(f"Error preprocessing image: {e}")
+        raise
         image = image.resize(new_size, Image.LANCZOS)
     
     # Convert to base64 for API calls
