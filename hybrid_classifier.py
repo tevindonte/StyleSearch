@@ -340,9 +340,19 @@ def classify_fashion_style(image):
             
         # Preprocess the image
         _, base64_image = preprocess_image(image)
-    
-    # Step 1: Get primary analysis from GPT-4o (highest weight)
-    gpt4o_analysis = analyze_with_gpt4o(base64_image)
+        
+        # Step 1: Get primary analysis from GPT-4o (highest weight)
+        gpt4o_analysis = analyze_with_gpt4o(base64_image)
+    except Exception as e:
+        print(f"Error in classify_fashion_style: {e}")
+        return {
+            "primary_style": "Unclassified",
+            "style_tags": [],
+            "confidence_score": 0,
+            "style_description": "Error during analysis",
+            "attributes": {},
+            "outfit_combinations": []
+        }
     
     # Step 2: Extract detailed attributes 
     attribute_analysis = extract_attributes(base64_image)
