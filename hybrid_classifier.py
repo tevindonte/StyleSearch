@@ -57,8 +57,12 @@ def preprocess_image(image):
     Returns:
         Processed image and base64 encoding for API calls
     """
-    # Resize image if needed (OpenAI API accepts any size)
-    max_size = 1024
+    try:
+        if not isinstance(image, Image.Image):
+            raise ValueError("Invalid image format")
+            
+        # Resize image if needed (OpenAI API accepts any size)
+        max_size = 1024
     if max(image.size) > max_size:
         ratio = max_size / max(image.size)
         new_size = tuple([int(s * ratio) for s in image.size])
@@ -82,7 +86,14 @@ def analyze_with_gpt4o(base64_image):
     Returns:
         Dictionary with detailed style analysis
     """
+    if not openai_client:
+        raise Exception("OpenAI client not initialized")
+        
+    if not base64_image:
+        raise ValueError("No image data provided")
+        
     try:
+        logging.info("Starting GPT-4o analysis")
         # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
         # do not change this unless explicitly requested by the user
         response = openai_client.chat.completions.create(
@@ -320,8 +331,12 @@ def classify_fashion_style(image):
     Returns:
         Dictionary with comprehensive style analysis
     """
-    # Preprocess the image
-    _, base64_image = preprocess_image(image)
+    try:
+        if not image:
+            raise ValueError("No image provided")
+            
+        # Preprocess the image
+        _, base64_image = preprocess_image(image)
     
     # Step 1: Get primary analysis from GPT-4o (highest weight)
     gpt4o_analysis = analyze_with_gpt4o(base64_image)
