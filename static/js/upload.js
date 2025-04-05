@@ -15,17 +15,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     const errorAlert = document.getElementById('errorAlert');
     const errorMessage = document.getElementById('errorMessage');
+    const apiKeyStatus = document.getElementById('apiKeyStatus');
+    const apiKeyStatusMessage = document.getElementById('apiKeyStatusMessage');
+    const refreshApiKeyBtn = document.getElementById('refreshApiKeyBtn');
+    
+    // Flag to prevent multiple event triggering
+    let isEventInProgress = false;
     
     // Only add event listeners if elements exist
     if (browseButton && imageInput) {
         console.log('Found upload elements');
         
-        // Add event listener to browse button
-        browseButton.addEventListener('click', function(e) {
+        // Add event listener to browse button - using once option to prevent multiple events
+        browseButton.addEventListener('click', function handleBrowseClick(e) {
+            if (isEventInProgress) return;
+            
+            isEventInProgress = true;
             e.preventDefault();
             e.stopPropagation();
             console.log('Browse button clicked');
-            imageInput.click();
+            
+            // Use setTimeout to prevent multiple dialogs
+            setTimeout(() => {
+                imageInput.click();
+                // Reset flag after a short delay
+                setTimeout(() => {
+                    isEventInProgress = false;
+                }, 500);
+            }, 10);
         });
         
         // Add event listener to file input
@@ -45,6 +62,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 reader.readAsDataURL(file);
             }
         });
+        
+        // Add event listener to refresh API key button
+        if (refreshApiKeyBtn) {
+            refreshApiKeyBtn.addEventListener('click', function() {
+                // Show loading state
+                refreshApiKeyBtn.disabled = true;
+                refreshApiKeyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
+                
+                // Call the refresh endpoint
+                fetch('/refresh-openai', {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API key refresh response:', data);
+                    
+                    if (data.status === 'success') {
+                        // Update UI to show success
+                        apiKeyStatus.classList.remove('alert-warning', 'alert-danger');
+                        apiKeyStatus.classList.add('alert-success');
+                        apiKeyStatusMessage.textContent = 'OpenAI API connection refreshed successfully.';
+                        
+                        // Hide after a delay
+                        setTimeout(() => {
+                            apiKeyStatus.classList.add('d-none');
+                        }, 5000);
+                    } else {
+                        // Update UI to show error
+                        apiKeyStatus.classList.remove('alert-warning', 'alert-success');
+                        apiKeyStatus.classList.add('alert-danger');
+                        apiKeyStatusMessage.textContent = data.message || 'Failed to refresh API connection.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing API key:', error);
+                    apiKeyStatus.classList.remove('alert-warning', 'alert-success');
+                    apiKeyStatus.classList.add('alert-danger');
+                    apiKeyStatusMessage.textContent = 'Error occurred while refreshing API connection.';
+                })
+                .finally(() => {
+                    // Reset button state
+                    refreshApiKeyBtn.disabled = false;
+                    refreshApiKeyBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Refresh API Connection';
+                });
+            });
+        }
         
         // Add event listener to remove preview button
         if (removePreviewBtn) {
@@ -92,8 +155,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     loadingIndicator.classList.add('d-none');
                     
                     if (data.error) {
-                        errorMessage.textContent = data.error;
-                        errorAlert.classList.remove('d-none');
+                        // Check if the error is related to OpenAI API key
+                        if (data.error.includes('OpenAI') || data.error.includes('API key') || data.error.includes('quota')) {
+                            // Show API key status alert
+                            apiKeyStatus.classList.remove('d-none', 'alert-success');
+                            apiKeyStatus.classList.add('alert-warning');
+                            apiKeyStatusMessage.textContent = data.error;
+                        } else {
+                            errorMessage.textContent = data.error;
+                            errorAlert.classList.remove('d-none');
+                        }
                         return;
                     }
                     
@@ -186,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateOutfitCombinations(data.outfit_combinations || []);
         
         // Update product recommendations
-        updateProductRecommendations(data.recommendations || []);
+        updateProductRecommendations(data.products || data.recommendations || []);
         
         // Setup feedback and favorites
         if (data.prediction_id) {
@@ -328,8 +399,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         ` : ''}
                     </div>
                     <div class="card-footer bg-transparent border-top-0">
-                        <a href="${product.listing_url || '#'}" target="_blank" class="btn btn-outline-primary w-100${product.is_sample ? ' disabled' : ''}">
-                            ${product.is_sample ? 'Sample Product' : 'View on eBay'}
+                        <a href="${product.url || '#'}" class="btn btn-primary btn-sm w-100" target="_blank">
+                            <i class="fas fa-shopping-cart me-1"></i>Buy Now
                         </a>
                     </div>
                 </div>
@@ -339,27 +410,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Function to generate star rating HTML
+    // Function to generate star rating
     function getStarRating(rating) {
-        const fullStars = Math.floor(rating);
-        const halfStar = rating % 1 >= 0.5;
-        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        // Normalize rating to a 0-5 scale
+        const normalizedRating = Math.max(0, Math.min(5, parseFloat(rating)));
         
-        let starsHtml = '';
+        // Calculate full and half stars
+        const fullStars = Math.floor(normalizedRating);
+        const halfStar = normalizedRating % 1 >= 0.5 ? 1 : 0;
+        const emptyStars = 5 - fullStars - halfStar;
         
+        // Generate HTML
+        let html = '';
+        
+        // Full stars
         for (let i = 0; i < fullStars; i++) {
-            starsHtml += '<i class="fas fa-star text-warning"></i> ';
+            html += '<i class="fas fa-star text-warning"></i>';
         }
         
+        // Half star if needed
         if (halfStar) {
-            starsHtml += '<i class="fas fa-star-half-alt text-warning"></i> ';
+            html += '<i class="fas fa-star-half-alt text-warning"></i>';
         }
         
+        // Empty stars
         for (let i = 0; i < emptyStars; i++) {
-            starsHtml += '<i class="far fa-star text-warning"></i> ';
+            html += '<i class="far fa-star text-warning"></i>';
         }
         
-        return starsHtml;
+        return html;
     }
     
     // Function to set up feedback buttons
@@ -368,41 +447,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const inaccurateBtn = document.getElementById('inaccurateBtn');
         const feedbackThanks = document.getElementById('feedbackThanks');
         
-        if (accurateBtn && inaccurateBtn) {
-            // Reset buttons
-            accurateBtn.classList.remove('btn-success');
-            inaccurateBtn.classList.remove('btn-danger');
-            accurateBtn.classList.add('btn-outline-success');
-            inaccurateBtn.classList.add('btn-outline-danger');
-            if (feedbackThanks) feedbackThanks.classList.add('d-none');
-            
-            // Add event listeners
-            accurateBtn.onclick = function() {
-                submitFeedback(predictionId, style, true);
-                accurateBtn.classList.remove('btn-outline-success');
-                accurateBtn.classList.add('btn-success');
-                inaccurateBtn.classList.remove('btn-danger');
-                inaccurateBtn.classList.add('btn-outline-danger');
-                if (feedbackThanks) feedbackThanks.classList.remove('d-none');
-            };
-            
-            inaccurateBtn.onclick = function() {
-                submitFeedback(predictionId, style, false);
-                inaccurateBtn.classList.remove('btn-outline-danger');
-                inaccurateBtn.classList.add('btn-danger');
-                accurateBtn.classList.remove('btn-success');
-                accurateBtn.classList.add('btn-outline-success');
-                if (feedbackThanks) feedbackThanks.classList.remove('d-none');
-            };
-        }
+        if (!accurateBtn || !inaccurateBtn || !feedbackThanks) return;
+        
+        // Reset state
+        accurateBtn.disabled = false;
+        inaccurateBtn.disabled = false;
+        feedbackThanks.classList.add('d-none');
+        
+        // Add event listeners
+        accurateBtn.onclick = function() {
+            submitFeedback(predictionId, style, true);
+        };
+        
+        inaccurateBtn.onclick = function() {
+            submitFeedback(predictionId, style, false);
+        };
     }
     
     // Function to submit feedback
     function submitFeedback(predictionId, style, isAccurate) {
-        fetch('/submit-feedback', {
+        const accurateBtn = document.getElementById('accurateBtn');
+        const inaccurateBtn = document.getElementById('inaccurateBtn');
+        const feedbackThanks = document.getElementById('feedbackThanks');
+        
+        // Disable buttons during submission
+        accurateBtn.disabled = true;
+        inaccurateBtn.disabled = true;
+        
+        fetch('/feedback', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 prediction_id: predictionId,
@@ -413,9 +488,53 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             console.log('Feedback submitted:', data);
+            
+            // Show thank you message
+            feedbackThanks.classList.remove('d-none');
+            
+            // Keep buttons disabled to prevent multiple submissions
         })
         .catch(error => {
             console.error('Error submitting feedback:', error);
+            
+            // Re-enable buttons if there was an error
+            accurateBtn.disabled = false;
+            inaccurateBtn.disabled = false;
+        });
+    }
+    
+    // Function to save to favorites
+    if (document.getElementById('saveToFavoritesBtn')) {
+        document.getElementById('saveToFavoritesBtn').addEventListener('click', function() {
+            const predictionId = this.getAttribute('data-prediction-id');
+            if (!predictionId) return;
+            
+            const button = this;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+            
+            fetch(`/favorites/add/${predictionId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Saved to favorites:', data);
+                
+                if (data.success) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-success');
+                    button.innerHTML = '<i class="fas fa-heart me-1"></i> Saved to Favorites';
+                } else {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-heart me-1"></i> Save to Favorites';
+                    console.error('Error saving to favorites:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving to favorites:', error);
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-heart me-1"></i> Save to Favorites';
+            });
         });
     }
 });

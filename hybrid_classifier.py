@@ -19,26 +19,20 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 
-# Initialize OpenAI client
-openai_api_key = os.environ.get('OPENAI_API_KEY')
-try:
-    # For newer versions of OpenAI library (without proxies parameter)
-    openai_client = OpenAI(api_key=openai_api_key)
-except TypeError as e:
-    if 'unexpected keyword argument' in str(e) and 'proxies' in str(e):
-        # Handle compatibility with older versions or environment issues
-        import httpx
-        # Create compatible client without proxy settings
-        openai_client = OpenAI(
-            api_key=openai_api_key,
-            http_client=httpx.Client(
-                base_url="https://api.openai.com/v1",
-                follow_redirects=True,
-                timeout=60.0
-            )
-        )
-    else:
-        raise
+# This will be initialized from app.py
+# The hybrid_classifier module uses the OpenAI client from the app module
+openai_client = None
+
+def set_openai_client(client):
+    """
+    Set the OpenAI client instance from the app module.
+    This allows us to use the same client instance across the application.
+    
+    Args:
+        client: The OpenAI client instance
+    """
+    global openai_client
+    openai_client = client
 
 # Define style categories for CLIP comparison
 STYLE_CATEGORIES = [

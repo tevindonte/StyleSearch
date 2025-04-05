@@ -85,7 +85,8 @@ class StorageManager:
             image_id = str(uuid.uuid4())
             
             # Define storage path with folder structure
-            current_date = uuid.uuid1().time.strftime('%Y/%m/%d')
+            import datetime
+            current_date = datetime.datetime.now().strftime('%Y/%m/%d')
             storage_path = f"uploads/{current_date}/{image_id}.{image_format.lower()}"
             
             # Convert image to bytes
