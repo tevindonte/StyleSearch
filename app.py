@@ -7,6 +7,7 @@ import json
 import base64
 import uuid
 import datetime
+import hashlib
 from PIL import Image
 from flask import Flask, request, jsonify, render_template, flash, redirect, url_for
 from flask_login import LoginManager, current_user, login_required
@@ -175,7 +176,9 @@ def ebay_user_deletion():
     Endpoint to handle eBay marketplace account deletion notifications.
     This is required by eBay for compliance with data privacy regulations.
     
-    For GET requests: Returns verification token for eBay to validate the endpoint
+    For GET requests: 
+        - If challenge_code is present: Compute and return hash for verification
+        - If no challenge_code: Return verification token
     For POST requests: Processes actual deletion notifications
     
     Returns:
@@ -183,11 +186,33 @@ def ebay_user_deletion():
     """
     # Get verification token from environment variables
     verification_token = os.environ.get('EBAY_VERIFICATION_TOKEN', 'style-search-verification-token')
+    endpoint = request.url_rule.rule  # Get the endpoint path
     
     if request.method == 'GET':
-        # This is eBay verifying the endpoint exists
-        logging.info("eBay verification request received")
-        return verification_token, 200
+        challenge_code = request.args.get('challenge_code')
+        
+        if challenge_code:
+            # This is eBay sending a challenge code that we need to hash with our token
+            logging.info(f"eBay verification challenge received: {challenge_code}")
+            
+            # Create SHA-256 hash of challenge_code + verification_token + endpoint
+            # Important: The order must be exactly as specified by eBay
+            m = hashlib.sha256()
+            m.update(challenge_code.encode('utf-8'))
+            m.update(verification_token.encode('utf-8'))
+            m.update(endpoint.encode('utf-8'))
+            challenge_response = m.hexdigest()
+            
+            logging.info(f"Generated challenge response: {challenge_response}")
+            
+            # Return the challenge response in the format expected by eBay
+            return jsonify({
+                'challengeResponse': challenge_response
+            }), 200
+        else:
+            # Regular verification request
+            logging.info("eBay verification request received (no challenge)")
+            return verification_token, 200
     
     elif request.method == 'POST':
         try:
