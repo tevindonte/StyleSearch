@@ -2,12 +2,12 @@
 Hybrid Style Classification System
 
 This module implements a multi-model approach to fashion style classification:
+- ChatGPT-4o (Primary): High-level style categorization and context awareness
+- CLIP (Secondary): Image-text similarity matching for style verification
+- Attribute detection (Tertiary): Detailed clothing item recognition
 """
 
 import logging
-1. ChatGPT-4o (Primary) - High-level style categorization and context awareness
-2. CLIP (Secondary) - Image-text similarity matching for style verification
-3. Attribute detection (Tertiary) - Detailed clothing item recognition
 
 The system combines these models with appropriate weighting to provide
 comprehensive style analysis, recommendations, and outfit generation.
