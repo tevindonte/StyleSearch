@@ -92,6 +92,11 @@ def analyze_with_gpt4o(base64_image):
     Returns:
         Dictionary with detailed style analysis
     """
+        base64_image: Base64-encoded image string
+        
+    Returns:
+        Dictionary with detailed style analysis
+    """
     if not openai_client:
         # Fallback to basic classification
         return {
