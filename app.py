@@ -186,7 +186,17 @@ def ebay_user_deletion():
     """
     # Get verification token from environment variables
     verification_token = os.environ.get('EBAY_VERIFICATION_TOKEN', 'style-search-verification-token')
+    
+    # Get the full URL for the endpoint
+    if request.host_url.endswith('/'):
+        base_url = request.host_url[:-1]  # Remove trailing slash
+    else:
+        base_url = request.host_url
+    
     endpoint = request.url_rule.rule  # Get the endpoint path
+    full_url = f"{base_url}{endpoint}"
+    
+    logging.info(f"eBay endpoint URL being used: {full_url}")
     
     if request.method == 'GET':
         challenge_code = request.args.get('challenge_code')
@@ -197,13 +207,24 @@ def ebay_user_deletion():
             
             # Create SHA-256 hash of challenge_code + verification_token + endpoint
             # Important: The order must be exactly as specified by eBay
-            m = hashlib.sha256()
-            m.update(challenge_code.encode('utf-8'))
-            m.update(verification_token.encode('utf-8'))
-            m.update(endpoint.encode('utf-8'))
-            challenge_response = m.hexdigest()
+            # Try both the path-only endpoint and the full URL
+            m1 = hashlib.sha256()
+            m1.update(challenge_code.encode('utf-8'))
+            m1.update(verification_token.encode('utf-8'))
+            m1.update(endpoint.encode('utf-8'))
+            challenge_response_path = m1.hexdigest()
             
-            logging.info(f"Generated challenge response: {challenge_response}")
+            m2 = hashlib.sha256()
+            m2.update(challenge_code.encode('utf-8'))
+            m2.update(verification_token.encode('utf-8'))
+            m2.update(full_url.encode('utf-8'))
+            challenge_response_full = m2.hexdigest()
+            
+            # Use the full URL hash by default
+            challenge_response = challenge_response_full
+            
+            logging.info(f"Generated challenge response (path only): {challenge_response_path}")
+            logging.info(f"Generated challenge response (full URL): {challenge_response_full}")
             
             # Return the challenge response in the format expected by eBay
             return jsonify({
