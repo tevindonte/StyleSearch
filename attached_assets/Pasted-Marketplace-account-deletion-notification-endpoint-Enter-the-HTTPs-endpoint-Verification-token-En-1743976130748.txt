@@ -1,0 +1,50 @@
+Marketplace account deletion notification endpoint
+Enter the HTTPs endpoint
+Verification token
+Enter the verification token
+Save
+
+whats purpose of this in relevance to our app
+
+
+ChatGPT said:
+Reasoned for 6 seconds
+The "Marketplace account deletion notification endpoint" is part of eBay's compliance requirements. It lets eBay notify your application when a user (or seller) deletes their eBay account. In other words, it ensures that if any account connected to your app (via API integration, user tokens, etc.) is deleted on eBay, your app is informed so you can remove or update related data accordingly.
+
+Relevance to Your App
+If You're Not Storing eBay User Data:
+Since your current design uses eBay purely for affiliate linking (where users are redirected to eBay without a full account integration on your side), you might not need to actively implement this endpoint. You aren't managing eBay user profiles directly.
+
+Future Enhancements:
+However, if you decide to add features that involve user sign-in with eBay or store more detailed information about eBay accounts, you'll need to provide this endpoint to comply with eBay's policies.
+
+Compliance:
+Even if you don't use it right away, having a plan for it shows that you're considering data privacy and compliance. This might help if you ever apply for production keys or need to address eBay's requirements during your app's certification process.
+
+In short, the deletion notification endpoint is there to help you maintain compliance with eBay's data handling policies if you ever integrate deeper user account features. For now, if you're just using affiliate links and not storing eBay account data, you might not need to implement it immediately.
+
+
+
+
+
+You said:
+do I have to setup the endpoint to be able to use my production keys right now?
+
+
+ChatGPT said:
+Reasoned for 7 seconds
+It depends on the scope of your integration and eBay’s specific production key requirements. In many cases—especially if you’re handling user tokens or personal data—eBay requires you to set up a Marketplace Account Deletion Notification Endpoint as part of your compliance.
+
+However, since your current integration is focused on affiliate linking (where users are simply redirected to eBay and you’re not managing or storing their eBay account data), you might not actively use this endpoint.
+
+That said, during the production key application process, eBay may still ask you to provide a valid HTTPS endpoint for account deletion notifications—even if it’s a dummy endpoint that just returns a confirmation. If that’s the case, you’ll need to set up an endpoint that meets their requirements (i.e., it accepts requests and responds with the expected verification token) to get your production keys enabled.
+
+In summary:
+
+If your integration only uses affiliate links and you don't store eBay user data:
+You might not need to actually implement any functionality for the deletion endpoint, but you may still have to provide one (even a minimal dummy endpoint) to satisfy eBay’s production key requirements.
+
+If you plan to expand your integration to include user account actions (e.g., managing tokens):
+You must implement the endpoint properly.
+
+So, check the specific requirements on your eBay developer dashboard. If they mandate a deletion endpoint for production keys, set up a simple HTTPS endpoint (even if it only returns the verification token) to comply with their policies.

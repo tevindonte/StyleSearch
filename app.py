@@ -167,6 +167,61 @@ def refresh_openai_client():
             'message': 'Failed to refresh OpenAI client. Check logs for details.'
         })
 
+# eBay Marketplace Account Deletion Notification Endpoint
+# This is required for eBay Production API key compliance
+@app.route('/ebay/user-deletion', methods=['POST', 'GET'])
+def ebay_user_deletion():
+    """
+    Endpoint to handle eBay marketplace account deletion notifications.
+    This is required by eBay for compliance with data privacy regulations.
+    
+    For GET requests: Returns verification token for eBay to validate the endpoint
+    For POST requests: Processes actual deletion notifications
+    
+    Returns:
+        Appropriate response based on request type
+    """
+    # Get verification token from environment variables
+    verification_token = os.environ.get('EBAY_VERIFICATION_TOKEN', 'style-search-verification-token')
+    
+    if request.method == 'GET':
+        # This is eBay verifying the endpoint exists
+        logging.info("eBay verification request received")
+        return verification_token, 200
+    
+    elif request.method == 'POST':
+        try:
+            # Parse the notification data
+            data = request.get_json()
+            logging.info(f"Received eBay account deletion notification: {data}")
+            
+            # Extract user IDs that need to be deleted
+            if data and 'metadata' in data and 'userId' in data['metadata']:
+                ebay_user_id = data['metadata']['userId']
+                logging.info(f"Processing deletion for eBay user ID: {ebay_user_id}")
+                
+                # In a real implementation, you would delete any user data associated with this eBay ID
+                # For now, we'll just log the request since we're not storing eBay user data
+                
+                # Return success response
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Deletion notification processed successfully'
+                }), 200
+            else:
+                logging.warning("Invalid deletion notification format")
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Invalid notification format'
+                }), 400
+                
+        except Exception as e:
+            logging.error(f"Error processing eBay deletion notification: {str(e)}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error processing deletion notification: {str(e)}'
+            }), 500
+
 # Create placeholder service manager objects
 db_manager = None
 storage_manager = None
