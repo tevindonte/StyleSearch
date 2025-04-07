@@ -518,6 +518,11 @@ def fetch_ebay_recommendations(style, limit=6, user_comments=''):
     Returns:
         List of product recommendations with details
     """
+    from ebay_manager import EbayManager
+    
+    # Initialize eBay API client
+    ebay_manager = EbayManager()
+    
     # Use the style name directly as the search query
     search_query = style.lower() + " fashion clothing"
     
@@ -574,21 +579,50 @@ def fetch_ebay_recommendations(style, limit=6, user_comments=''):
                 logging.info(f"Found {len(products)} products from eBay API")
                 return products
             else:
-                logging.warning("No products found from eBay API, falling back to sample data")
+                # Create a more informative message about rate limiting
+                logging.warning("eBay API rate limit reached or no products found, showing rate limit message")
+                return [{
+                    'id': 'rate-limit',
+                    'title': 'eBay API Rate Limit',
+                    'description': 'We\'ve reached eBay\'s API request limit. Try again later to see real product recommendations.',
+                    'price': 'N/A',
+                    'image': 'https://placehold.co/400x300/2a2a2a/ffffff?text=Rate+Limit+Reached',
+                    'url': '#',
+                    'rating': 0,
+                    'reviews': 0,
+                    'is_error_message': True
+                }]
         else:
-            logging.warning("eBay API connection not available, using sample data")
-        
-        # Fallback to sample data if eBay API fails or returns no results
-        items = generate_sample_products(style, limit, search_query)
-        return items
+            logging.warning("eBay API connection not available, showing connection error message")
+            return [{
+                'id': 'connection-error',
+                'title': 'eBay API Connection Issue',
+                'description': 'We\'re having trouble connecting to the eBay API. Please try again later.',
+                'price': 'N/A',
+                'image': 'https://placehold.co/400x300/2a2a2a/ffffff?text=Connection+Error',
+                'url': '#',
+                'rating': 0,
+                'reviews': 0,
+                'is_error_message': True
+            }]
         
     except Exception as e:
         logging.error(f"Error fetching eBay recommendations: {str(e)}")
-        # Fallback to sample data in case of any errors
-        return generate_sample_products(style, limit, search_query)
+        # Create an error message about the API issue
+        return [{
+            'id': 'api-error',
+            'title': 'eBay API Error',
+            'description': f'Error fetching product recommendations: {str(e)}',
+            'price': 'N/A',
+            'image': 'https://placehold.co/400x300/2a2a2a/ffffff?text=API+Error',
+            'url': '#',
+            'rating': 0,
+            'reviews': 0,
+            'is_error_message': True
+        }]
 def generate_sample_products(style, limit=6, search_query=None):
     """
-    Generate sample product data for proof-of-concept.
+    Generate rate limit error message instead of sample products to comply with data integrity policy.
     
     Args:
         style: The predicted fashion style
@@ -596,88 +630,21 @@ def generate_sample_products(style, limit=6, search_query=None):
         search_query: Optional enhanced search query from user comments
         
     Returns:
-        List of product dictionaries
+        List containing an error message product
     """
-    # Common fashion items that can work for any style
-    common_items = [
-        'Top', 'Jacket', 'Pants', 'Dress', 'Skirt', 'Shirt', 
-        'Sweater', 'Jeans', 'Blazer', 'Coat', 'Shoes', 'Boots', 
-        'Accessories', 'Bag', 'Hat', 'Scarf'
-    ]
-    
-    # If we have a search query from user comments, try to extract items from it
-    custom_items = []
-    if search_query and search_query != style.lower() + " fashion clothing":
-        # Log that we're using an enhanced search query
-        logging.debug(f"Generating products with enhanced query: {search_query}")
-        
-        try:
-            # Use OpenAI to extract item types from the search query
-            response = openai_client.chat.completions.create(
-                model="gpt-4o",  # The newest OpenAI model is "gpt-4o" which was released May 13, 2024
-                messages=[
-                    {"role": "system", "content": "You are a fashion item classifier that extracts specific garment types from search queries."},
-                    {"role": "user", "content": f"Extract up to 5 specific fashion item types from this search query. Return ONLY the item types as a comma-separated list, no explanations: {search_query}"}
-                ],
-                max_tokens=50
-            )
-            
-            # Get the extracted item types
-            extracted_items = response.choices[0].message.content.strip().split(",")
-            custom_items = [item.strip() for item in extracted_items if item.strip()]
-            
-            logging.debug(f"Extracted custom items from query: {custom_items}")
-        except Exception as e:
-            logging.error(f"Error extracting custom items from query: {str(e)}")
-    
-    # Use custom items if we have them, otherwise use common items
-    item_types = custom_items if custom_items else common_items
-    
-    # Generate the requested number of sample products
-    products = []
-    for i in range(limit):
-        # Select a random item type from our options
-        item_type = random.choice(item_types)
-        
-        # Generate descriptive title with style and item type
-        title = f"{style} {item_type} - Fashion Statement Piece"
-        
-        # Generate a price between $19.99 and $149.99
-        price = round(random.uniform(19.99, 149.99), 2)
-        
-        # Generate random rating between 3 and 5 stars (in half-star increments)
-        rating = round(random.uniform(3, 5) * 2) / 2
-        
-        # Generate random number of reviews
-        reviews = random.randint(5, 500)
-        
-        # Generate random seller info
-        seller_name = f"Fashion{random.choice(['Trend', 'Style', 'Chic', 'Vogue', 'Elite'])}Store"
-        seller_rating = round(random.uniform(93, 100), 1)
-        
-        # Generate random shipping info
-        shipping_cost = random.choice([0, 4.99, 7.99])
-        shipping_time = f"{random.randint(2, 7)} days"
-        
-        # Create product dictionary
-        product = {
-            'title': title,
-            'price': price,
-            'currency': 'USD',
-            'image_url': f"https://placehold.co/300x300/1e1e1e/cccccc?text={item_type}",
-            'listing_url': '#',  # Placeholder URL
-            'rating': rating,
-            'reviews_count': reviews,
-            'seller_name': seller_name,
-            'seller_rating': seller_rating,
-            'shipping_cost': shipping_cost,
-            'shipping_time': shipping_time,
-            'is_sample': True  # Flag to indicate this is a sample product
-        }
-        
-        products.append(product)
-    
-    return products
+    # Return a rate limit message instead of generating sample products
+    logging.warning("Rate limit reached or API error, returning rate limit message")
+    return [{
+        'id': 'rate-limit',
+        'title': 'eBay API Rate Limit',
+        'description': 'We\'ve reached the API rate limit. Please try again later for product recommendations.',
+        'price': 'N/A',
+        'image': 'https://placehold.co/400x300/2a2a2a/ffffff?text=API+Rate+Limit',
+        'url': '#',
+        'rating': 0,
+        'reviews': 0,
+        'is_error_message': True
+    }]
 
 # Store a prediction in the database (SQL)
 def store_prediction_in_db(style_info, image_path):

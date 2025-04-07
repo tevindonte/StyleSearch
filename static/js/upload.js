@@ -1,257 +1,279 @@
-// Simple script for image upload handling
+// upload.js - Handles image upload and style prediction functionality
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Upload script loaded');
-    
-    // Get references to the DOM elements
-    const browseButton = document.getElementById('browseButton');
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const imagePreview = document.getElementById('imagePreview');
-    const uploadArea = document.getElementById('upload-area');
-    const predictButton = document.getElementById('predictButton');
-    const removePreviewBtn = document.getElementById('removePreviewBtn');
+    // Get DOM elements
     const uploadForm = document.getElementById('uploadForm');
-    const resultsCard = document.getElementById('resultsCard');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const errorAlert = document.getElementById('errorAlert');
-    const errorMessage = document.getElementById('errorMessage');
-    const apiKeyStatus = document.getElementById('apiKeyStatus');
-    const apiKeyStatusMessage = document.getElementById('apiKeyStatusMessage');
-    const refreshApiKeyBtn = document.getElementById('refreshApiKeyBtn');
+    const imageUpload = document.getElementById('imageUpload');
+    const uploadPreview = document.getElementById('uploadPreview');
+    const previewContainer = document.getElementById('previewContainer');
+    const dragDropArea = document.getElementById('dragDropArea');
+    const userCommentsField = document.getElementById('userComments');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadButton = document.getElementById('uploadButton');
+    const uploadButtonText = document.getElementById('uploadButtonText');
+    const uploadSpinner = document.getElementById('uploadSpinner');
     
-    // Flag to prevent multiple event triggering
-    let isEventInProgress = false;
+    // Results containers
+    const introSection = document.getElementById('introSection');
+    const resultsSection = document.getElementById('resultsSection');
+    const loadingSection = document.getElementById('loadingSection');
+    const errorContainer = document.getElementById('errorContainer');
     
-    // Only add event listeners if elements exist
-    if (browseButton && imageInput) {
-        console.log('Found upload elements');
-        
-        // Add event listener to browse button - using once option to prevent multiple events
-        browseButton.addEventListener('click', function handleBrowseClick(e) {
-            if (isEventInProgress) return;
-            
-            isEventInProgress = true;
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Browse button clicked');
-            
-            // Use setTimeout to prevent multiple dialogs
-            setTimeout(() => {
-                imageInput.click();
-                // Reset flag after a short delay
-                setTimeout(() => {
-                    isEventInProgress = false;
-                }, 500);
-            }, 10);
-        });
-        
-        // Add event listener to file input
-        imageInput.addEventListener('change', function() {
-            console.log('File input changed');
-            if (this.files && this.files[0]) {
-                const file = this.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    previewContainer.classList.remove('d-none');
-                    predictButton.disabled = false;
-                    console.log('Image preview displayed');
-                };
-                
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        // Add event listener to refresh API key button
-        if (refreshApiKeyBtn) {
-            refreshApiKeyBtn.addEventListener('click', function() {
-                // Show loading state
-                refreshApiKeyBtn.disabled = true;
-                refreshApiKeyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
-                
-                // Call the refresh endpoint
-                fetch('/refresh-openai', {
-                    method: 'GET'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('API key refresh response:', data);
-                    
-                    if (data.status === 'success') {
-                        // Update UI to show success
-                        apiKeyStatus.classList.remove('alert-warning', 'alert-danger');
-                        apiKeyStatus.classList.add('alert-success');
-                        apiKeyStatusMessage.textContent = 'OpenAI API connection refreshed successfully.';
-                        
-                        // Hide after a delay
-                        setTimeout(() => {
-                            apiKeyStatus.classList.add('d-none');
-                        }, 5000);
-                    } else {
-                        // Update UI to show error
-                        apiKeyStatus.classList.remove('alert-warning', 'alert-success');
-                        apiKeyStatus.classList.add('alert-danger');
-                        apiKeyStatusMessage.textContent = data.message || 'Failed to refresh API connection.';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error refreshing API key:', error);
-                    apiKeyStatus.classList.remove('alert-warning', 'alert-success');
-                    apiKeyStatus.classList.add('alert-danger');
-                    apiKeyStatusMessage.textContent = 'Error occurred while refreshing API connection.';
-                })
-                .finally(() => {
-                    // Reset button state
-                    refreshApiKeyBtn.disabled = false;
-                    refreshApiKeyBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Refresh API Connection';
-                });
-            });
-        }
-        
-        // Add event listener to remove preview button
-        if (removePreviewBtn) {
-            removePreviewBtn.addEventListener('click', function() {
-                previewContainer.classList.add('d-none');
-                imageInput.value = '';
-                predictButton.disabled = true;
-            });
-        }
-        
-        // Add event listener to predict button
-        if (predictButton) {
-            predictButton.addEventListener('click', function() {
-                if (!imageInput.files || !imageInput.files.length) {
-                    alert('Please select an image first');
-                    return;
-                }
-                
-                // Show loading indicator
-                loadingIndicator.classList.remove('d-none');
-                resultsCard.classList.add('d-none');
-                errorAlert.classList.add('d-none');
-                
-                // Get form data
-                const formData = new FormData();
-                formData.append('image', imageInput.files[0]);
-                
-                // Add user comments if any
-                const userComments = document.getElementById('userComments');
-                if (userComments && userComments.value) {
-                    formData.append('user_comments', userComments.value);
-                }
-                
-                console.log('Submitting prediction request');
-                
-                // Send AJAX request
-                fetch('/predict', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Received prediction response', data);
-                    // Hide loading indicator
-                    loadingIndicator.classList.add('d-none');
-                    
-                    if (data.error) {
-                        // Check if the error is related to OpenAI API key
-                        if (data.error.includes('OpenAI') || data.error.includes('API key') || data.error.includes('quota')) {
-                            // Show API key status alert
-                            apiKeyStatus.classList.remove('d-none', 'alert-success');
-                            apiKeyStatus.classList.add('alert-warning');
-                            apiKeyStatusMessage.textContent = data.error;
-                        } else {
-                            errorMessage.textContent = data.error;
-                            errorAlert.classList.remove('d-none');
-                        }
-                        return;
-                    }
-                    
-                    // Update the results card with the prediction data
-                    updateResultsCard(data);
-                    
-                    // Show results card
-                    resultsCard.classList.remove('d-none');
-                    
-                    // Scroll to results
-                    resultsCard.scrollIntoView({ behavior: 'smooth' });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    loadingIndicator.classList.add('d-none');
-                    errorMessage.textContent = 'An error occurred during analysis. Please try again.';
-                    errorAlert.classList.remove('d-none');
-                });
-            });
-        }
+    // Check if file upload is supported
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        console.log("File API is supported in this browser");
     } else {
-        console.error('Upload elements not found');
+        console.warn("File API is not fully supported in this browser");
     }
     
-    // Function to update results card with prediction data
-    function updateResultsCard(data) {
-        // Set the predicted style
-        document.getElementById('predictedStyle').textContent = data.primary_style || 'Unknown Style';
-        
-        // Update style description
-        const styleDescription = document.getElementById('styleDescription');
-        if (styleDescription) {
-            styleDescription.innerHTML = `<p>${data.description || 'No description available.'}</p>`;
-        }
-        
-        // Show attributes section if available
-        if (data.attributes && Object.keys(data.attributes).length > 0) {
-            // Update the attributes list
-            const attributesList = document.getElementById('attributesList');
-            if (attributesList) {
-                attributesList.innerHTML = '';
-                
-                for (const category in data.attributes) {
-                    const col = document.createElement('div');
-                    col.className = 'col-md-6';
+    // Initialize WebSocket for real-time updates
+    let socket;
+    try {
+        // Only initialize WebSocket if the browser supports it and we're not in a test environment
+        if (window.WebSocket && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`);
+            
+            socket.onopen = function(e) {
+                console.log("WebSocket connection established");
+            };
+            
+            socket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("WebSocket message received:", data);
                     
-                    const card = document.createElement('div');
-                    card.className = 'card bg-dark bg-opacity-25 mb-2';
-                    
-                    const cardHeader = document.createElement('div');
-                    cardHeader.className = 'card-header';
-                    cardHeader.innerHTML = `<h6 class="mb-0">${category}</h6>`;
-                    
-                    const cardBody = document.createElement('div');
-                    cardBody.className = 'card-body py-2';
-                    
-                    const list = document.createElement('ul');
-                    list.className = 'list-unstyled mb-0';
-                    
-                    // Add each attribute in this category
-                    data.attributes[category].forEach(attr => {
-                        const item = document.createElement('li');
-                        item.className = 'small';
-                        item.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i> ${attr}`;
-                        list.appendChild(item);
-                    });
-                    
-                    cardBody.appendChild(list);
-                    card.appendChild(cardHeader);
-                    card.appendChild(cardBody);
-                    col.appendChild(card);
-                    attributesList.appendChild(col);
+                    if (data.type === 'processing_update') {
+                        updateProcessingStatus(data.step, data.progress);
+                    }
+                } catch (e) {
+                    console.error("Error parsing WebSocket message:", e);
                 }
-            }
+            };
             
-            // Update confidence score
-            const confidenceScore = document.getElementById('confidenceScore');
-            if (confidenceScore) {
-                confidenceScore.textContent = `${data.confidence_score || 0}% confidence`;
-            }
+            socket.onerror = function(error) {
+                console.error("WebSocket error:", error);
+            };
             
-            // Show attributes section
-            const attributesSection = document.getElementById('attributesSection');
-            if (attributesSection) {
-                attributesSection.classList.remove('d-none');
-            }
+            socket.onclose = function(event) {
+                console.log("WebSocket connection closed", event);
+            };
         }
+    } catch (e) {
+        console.warn("WebSocket initialization failed:", e);
+    }
+    
+    // Set up the image upload preview functionality
+    if (imageUpload) {
+        imageUpload.addEventListener('change', previewImage);
+    }
+    
+    // Set up drag and drop functionality
+    if (dragDropArea) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dragDropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dragDropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dragDropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        dragDropArea.addEventListener('drop', handleDrop, false);
+    }
+    
+    // Set up the form submission
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', submitForm);
+    }
+    
+    // Helper functions
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function highlight() {
+        dragDropArea.classList.add('highlight');
+    }
+    
+    function unhighlight() {
+        dragDropArea.classList.remove('highlight');
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            imageUpload.files = files;
+            previewImage();
+        }
+    }
+    
+    function previewImage() {
+        previewContainer.style.display = 'block';
+        
+        const file = imageUpload.files[0];
+        if (file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showError("Please upload a valid image file (JPEG, PNG, GIF, or WebP).");
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            if (file.size > maxSize) {
+                showError("Please upload an image smaller than 5MB.");
+                return;
+            }
+            
+            // Create file reader to read and display the image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadPreview.src = e.target.result;
+                uploadPreview.classList.remove('d-none');
+                
+                // Enable the upload button
+                uploadButton.disabled = false;
+                
+                // Hide any previous errors
+                errorContainer.classList.add('d-none');
+            };
+            reader.onerror = function() {
+                showError("Error reading the image file. Please try another image.");
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    function submitForm(e) {
+        e.preventDefault();
+        
+        // Check if file is selected
+        if (!imageUpload.files || imageUpload.files.length === 0) {
+            showError("Please select an image to upload.");
+            return;
+        }
+        
+        // Hide any previous errors
+        errorContainer.classList.add('d-none');
+        
+        // Show loading section
+        introSection.classList.add('d-none');
+        loadingSection.classList.remove('d-none');
+        
+        // Disable submit button and show spinner
+        uploadButton.disabled = true;
+        uploadButtonText.textContent = 'Analyzing...';
+        uploadSpinner.classList.remove('d-none');
+        
+        // Start progress animation
+        startProgressAnimation();
+        
+        // Get user comments if any
+        const userComments = userCommentsField ? userCommentsField.value : '';
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('image', imageUpload.files[0]);
+        if (userComments) {
+            formData.append('user_comments', userComments);
+        }
+        
+        // Make AJAX request to predict API
+        fetch('/predict', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Network response was not ok');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            // Display results
+            updateResults(data);
+            // Set up feedback buttons
+            setupFeedbackButtons(data.prediction_id, data.primary_style);
+            // Hide loading section and show results
+            loadingSection.classList.add('d-none');
+            resultsSection.classList.remove('d-none');
+            // Scroll to results section
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Show error and hide loading section
+            showError(error.message);
+            loadingSection.classList.add('d-none');
+            introSection.classList.remove('d-none');
+            // Reset upload button
+            uploadButton.disabled = false;
+            uploadButtonText.textContent = 'Analyze Style';
+            uploadSpinner.classList.add('d-none');
+        });
+    }
+    
+    function startProgressAnimation() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 1;
+            if (progress > 95) {
+                clearInterval(interval);
+                return;
+            }
+            uploadProgress.style.width = `${progress}%`;
+            uploadProgress.setAttribute('aria-valuenow', progress);
+        }, 100);
+    }
+    
+    function updateProcessingStatus(step, progress) {
+        const statusElement = document.getElementById('processingStatus');
+        if (statusElement) {
+            statusElement.innerHTML = step;
+        }
+        
+        if (progress && uploadProgress) {
+            uploadProgress.style.width = `${progress}%`;
+            uploadProgress.setAttribute('aria-valuenow', progress);
+        }
+    }
+    
+    function showError(message) {
+        errorContainer.classList.remove('d-none');
+        errorContainer.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+    }
+    
+    function updateResults(data) {
+        // Update primary style
+        if (document.getElementById('primaryStyle')) {
+            document.getElementById('primaryStyle').textContent = data.primary_style || 'Unknown Style';
+        }
+        
+        // Update style tags
+        updateStyleTags(data.style_tags || []);
+        
+        // Update description
+        if (document.getElementById('styleDescription')) {
+            document.getElementById('styleDescription').textContent = data.description || 'No description available.';
+        }
+        
+        // Update styling tips
+        if (document.getElementById('stylingTips')) {
+            document.getElementById('stylingTips').textContent = data.styling_tips || 'No styling tips available.';
+        }
+        
+        // Update attributes
+        updateAttributes(data.attributes || {});
         
         // Update outfit combinations
         updateOutfitCombinations(data.outfit_combinations || []);
@@ -259,92 +281,135 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update product recommendations
         updateProductRecommendations(data.products || data.recommendations || []);
         
-        // Setup feedback and favorites
-        if (data.prediction_id) {
-            // Set prediction ID for favorites button
-            const saveToFavoritesBtn = document.getElementById('saveToFavoritesBtn');
-            if (saveToFavoritesBtn) {
-                saveToFavoritesBtn.setAttribute('data-prediction-id', data.prediction_id);
-                saveToFavoritesBtn.disabled = false;
-                saveToFavoritesBtn.classList.remove('btn-success');
-                saveToFavoritesBtn.classList.add('btn-outline-primary');
-                saveToFavoritesBtn.innerHTML = '<i class="fas fa-heart me-1"></i> Save to Favorites';
-            }
-            
-            // Setup feedback buttons
-            setupFeedbackButtons(data.prediction_id, data.primary_style);
-            
-            // Show feedback section
-            const feedbackButtons = document.getElementById('feedbackButtons');
-            if (feedbackButtons) {
-                feedbackButtons.classList.remove('d-none');
-            }
+        // Update the uploaded image
+        if (document.getElementById('resultImage')) {
+            document.getElementById('resultImage').src = data.image_url;
+        }
+    }
+    
+    // Function to update style tags
+    function updateStyleTags(tags) {
+        const container = document.getElementById('styleTags');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!tags || tags.length === 0) {
+            container.innerHTML = '<span class="badge bg-secondary me-1">No tags</span>';
+            return;
         }
         
-        // Setup try another button
-        const tryAnotherBtn = document.getElementById('tryAnotherBtn');
-        if (tryAnotherBtn) {
-            tryAnotherBtn.addEventListener('click', function() {
-                // Reset form and hide results
-                if (uploadForm) uploadForm.reset();
-                resultsCard.classList.add('d-none');
-                previewContainer.classList.add('d-none');
-                errorAlert.classList.add('d-none');
-                const feedbackButtons = document.getElementById('feedbackButtons');
-                if (feedbackButtons) feedbackButtons.classList.add('d-none');
-                const feedbackThanks = document.getElementById('feedbackThanks');
-                if (feedbackThanks) feedbackThanks.classList.add('d-none');
-                
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
+        tags.forEach(tag => {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-info me-1 mb-1';
+            badge.textContent = tag;
+            container.appendChild(badge);
+        });
+    }
+    
+    // Function to update attributes
+    function updateAttributes(attributes) {
+        const container = document.getElementById('attributesContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!attributes || Object.keys(attributes).length === 0) {
+            container.innerHTML = '<p class="text-muted">No detailed attributes available.</p>';
+            return;
+        }
+        
+        // Sort attributes by category
+        const categories = {};
+        for (const [key, value] of Object.entries(attributes)) {
+            const category = key.split('_')[0];
+            if (!categories[category]) {
+                categories[category] = [];
+            }
+            categories[category].push({ key, value });
+        }
+        
+        // Create accordion for each category
+        let accordionHtml = '';
+        let index = 0;
+        
+        for (const [category, attrs] of Object.entries(categories)) {
+            const headingId = `heading${index}`;
+            const collapseId = `collapse${index}`;
+            const isFirst = index === 0;
+            
+            const accordionItem = document.createElement('div');
+            accordionItem.className = 'accordion-item';
+            
+            accordionItem.innerHTML = `
+                <h2 class="accordion-header" id="${headingId}">
+                    <button class="accordion-button ${isFirst ? '' : 'collapsed'}" type="button" 
+                            data-bs-toggle="collapse" data-bs-target="#${collapseId}" 
+                            aria-expanded="${isFirst ? 'true' : 'false'}" aria-controls="${collapseId}">
+                        ${category.charAt(0).toUpperCase() + category.slice(1)} Attributes
+                    </button>
+                </h2>
+                <div id="${collapseId}" class="accordion-collapse collapse ${isFirst ? 'show' : ''}" 
+                     aria-labelledby="${headingId}" data-bs-parent="#attributesAccordion">
+                    <div class="accordion-body">
+                        <ul class="list-group list-group-flush">
+                            ${attrs.map(attr => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>${attr.key.split('_').slice(1).join(' ').charAt(0).toUpperCase() + attr.key.split('_').slice(1).join(' ').slice(1)}</span>
+                                    <span class="badge bg-primary rounded-pill">${attr.value}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(accordionItem);
+            index++;
         }
     }
     
     // Function to update outfit combinations
-    function updateOutfitCombinations(combinations) {
+    function updateOutfitCombinations(outfits) {
         const container = document.getElementById('outfitCombinationsContainer');
         if (!container) return;
         
-        // Clear placeholder content
         container.innerHTML = '';
         
-        if (!combinations || combinations.length === 0) {
+        if (!outfits || outfits.length === 0) {
             container.innerHTML = '<p class="text-muted">No outfit combinations available.</p>';
             return;
         }
         
-        combinations.forEach((outfit, index) => {
+        outfits.forEach((outfit, index) => {
             const accordionItem = document.createElement('div');
-            accordionItem.className = 'accordion-item bg-dark';
+            accordionItem.className = 'accordion-item';
             
-            const headerId = `outfit-heading-${index}`;
-            const collapseId = `outfit-collapse-${index}`;
+            const headingId = `outfitHeading${index}`;
+            const collapseId = `outfitCollapse${index}`;
+            const isFirst = index === 0;
             
             accordionItem.innerHTML = `
-                <h2 class="accordion-header" id="${headerId}">
-                    <button class="accordion-button ${index !== 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="${index === 0 ? 'true' : 'false'}" aria-controls="${collapseId}">
-                        ${outfit.name || 'Outfit Combination ' + (index + 1)}
+                <h2 class="accordion-header" id="${headingId}">
+                    <button class="accordion-button ${isFirst ? '' : 'collapsed'}" type="button" 
+                            data-bs-toggle="collapse" data-bs-target="#${collapseId}" 
+                            aria-expanded="${isFirst ? 'true' : 'false'}" aria-controls="${collapseId}">
+                        ${outfit.name || `Outfit Combination ${index + 1}`}
                     </button>
                 </h2>
-                <div id="${collapseId}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" aria-labelledby="${headerId}" data-bs-parent="#outfitCombinationsContainer">
+                <div id="${collapseId}" class="accordion-collapse collapse ${isFirst ? 'show' : ''}" 
+                     aria-labelledby="${headingId}" data-bs-parent="#outfitCombinationsAccordion">
                     <div class="accordion-body">
-                        <p>${outfit.description || ''}</p>
-                        <h6 class="mt-3 mb-2">Components:</h6>
+                        <p>${outfit.description || 'No description available.'}</p>
                         <ul class="list-group list-group-flush mb-3">
-                            ${outfit.components ? outfit.components.map(item => `<li class="list-group-item bg-dark border-secondary">${item}</li>`).join('') : ''}
+                            ${outfit.components ? outfit.components.map(component => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>${component.item}</span>
+                                    <span class="badge bg-secondary rounded-pill">${component.type || 'Item'}</span>
+                                </li>
+                            `).join('') : ''}
                         </ul>
-                        ${outfit.occasion ? `
-                        <div class="d-flex justify-content-between align-items-center text-muted small">
-                            <div><strong>Occasion:</strong> ${outfit.occasion}</div>
-                            ${outfit.statement_piece ? `<div><strong>Statement piece:</strong> ${outfit.statement_piece}</div>` : ''}
-                        </div>
-                        ` : ''}
-                        ${outfit.styling_tip ? `
-                        <div class="mt-2 text-muted small">
-                            <strong>Tip:</strong> ${outfit.styling_tip}
-                        </div>
-                        ` : ''}
+                        ${outfit.styling_tip ? `<p class="mb-0"><strong>Styling Tip:</strong> ${outfit.styling_tip}</p>` : ''}
                     </div>
                 </div>
             `;
@@ -366,13 +431,33 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Check if the first product is an error message
+        if (products.length === 1 && products[0].is_error_message) {
+            const errorMessage = products[0];
+            
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-warning" role="alert">
+                        <h4 class="alert-heading">${errorMessage.title || 'API Error'}</h4>
+                        <p>${errorMessage.description || 'There was an error fetching product recommendations.'}</p>
+                        <hr>
+                        <p class="mb-0">Please try again later to see real product recommendations.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
         products.forEach(product => {
             const col = document.createElement('div');
             col.className = 'col';
             
+            // Use image instead of image_url for consistency
+            const imageUrl = product.image || product.image_url || '';
+            
             col.innerHTML = `
                 <div class="card h-100 border-0">
-                    <img src="${product.image_url || ''}" class="card-img-top" alt="${product.title || 'Product'}" onerror="this.src='${product.fallback_image || '/static/images/placeholder.jpg'}'">
+                    <img src="${imageUrl}" class="card-img-top" alt="${product.title || 'Product'}" onerror="this.src='${product.fallback_image || '/static/images/placeholder.jpg'}'">
                     <div class="card-body">
                         <h5 class="card-title">${product.title || 'Product Title'}</h5>
                         <p class="card-text">
@@ -384,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 ${getStarRating(product.rating)}
                                 <span class="small text-muted">(${product.reviews_count || 0})</span>
                             </div>
+                            ${product.seller ? `<span class="small text-muted">Seller: ${product.seller}</span>` : ''}
                             ${product.seller_name ? `<span class="small text-muted">Seller: ${product.seller_name}</span>` : ''}
                         </div>
                         ` : ''}
@@ -399,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ` : ''}
                     </div>
                     <div class="card-footer bg-transparent border-top-0">
-                        <a href="${product.url || '#'}" class="btn btn-primary btn-sm w-100" target="_blank">
+                        <a href="${product.url || '#'}" class="btn btn-primary btn-sm w-100" ${product.url && product.url !== '#' ? 'target="_blank"' : ''}>
                             <i class="fas fa-shopping-cart me-1"></i>Buy Now
                         </a>
                     </div>
@@ -449,12 +535,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!accurateBtn || !inaccurateBtn || !feedbackThanks) return;
         
-        // Reset state
-        accurateBtn.disabled = false;
-        inaccurateBtn.disabled = false;
-        feedbackThanks.classList.add('d-none');
+        // Show the feedback section
+        document.getElementById('feedbackSection').classList.remove('d-none');
         
-        // Add event listeners
+        // Set up click handlers
         accurateBtn.onclick = function() {
             submitFeedback(predictionId, style, true);
         };
@@ -466,75 +550,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to submit feedback
     function submitFeedback(predictionId, style, isAccurate) {
-        const accurateBtn = document.getElementById('accurateBtn');
-        const inaccurateBtn = document.getElementById('inaccurateBtn');
-        const feedbackThanks = document.getElementById('feedbackThanks');
+        const feedbackData = {
+            prediction_id: predictionId,
+            style: style,
+            is_accurate: isAccurate
+        };
         
-        // Disable buttons during submission
-        accurateBtn.disabled = true;
-        inaccurateBtn.disabled = true;
-        
-        fetch('/feedback', {
+        fetch('/submit_feedback', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                prediction_id: predictionId,
-                style: style,
-                is_accurate: isAccurate
-            })
+            body: JSON.stringify(feedbackData),
         })
         .then(response => response.json())
         .then(data => {
             console.log('Feedback submitted:', data);
-            
-            // Show thank you message
-            feedbackThanks.classList.remove('d-none');
-            
-            // Keep buttons disabled to prevent multiple submissions
+            // Show thanks message
+            document.getElementById('feedbackThanks').classList.remove('d-none');
+            // Disable buttons
+            document.getElementById('accurateBtn').disabled = true;
+            document.getElementById('inaccurateBtn').disabled = true;
         })
-        .catch(error => {
+        .catch((error) => {
             console.error('Error submitting feedback:', error);
-            
-            // Re-enable buttons if there was an error
-            accurateBtn.disabled = false;
-            inaccurateBtn.disabled = false;
-        });
-    }
-    
-    // Function to save to favorites
-    if (document.getElementById('saveToFavoritesBtn')) {
-        document.getElementById('saveToFavoritesBtn').addEventListener('click', function() {
-            const predictionId = this.getAttribute('data-prediction-id');
-            if (!predictionId) return;
-            
-            const button = this;
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
-            
-            fetch(`/favorites/add/${predictionId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Saved to favorites:', data);
-                
-                if (data.success) {
-                    button.classList.remove('btn-outline-primary');
-                    button.classList.add('btn-success');
-                    button.innerHTML = '<i class="fas fa-heart me-1"></i> Saved to Favorites';
-                } else {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-heart me-1"></i> Save to Favorites';
-                    console.error('Error saving to favorites:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error saving to favorites:', error);
-                button.disabled = false;
-                button.innerHTML = '<i class="fas fa-heart me-1"></i> Save to Favorites';
-            });
         });
     }
 });
