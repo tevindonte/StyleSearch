@@ -9,7 +9,7 @@
         <div class="card shadow mb-4 border-0 rounded-4 overflow-hidden">
             <div class="card-body p-0">
                 <!-- Hero Banner with Glassmorphism -->
-                <div class="hero-banner p-5 text-center position-relative" style="background: linear-gradient(135deg, rgba(103, 58, 183, 0.8), rgba(33, 150, 243, 0.6));">
+                <div class="hero-banner p-5 text-center position-relative">
                     <!-- Background Pattern (subtle) -->
                     <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB4PSIwIiB5PSIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSgzMCkiPjxwYXRoIGQ9Ik0tMTAgMTBsMjAgLTIwTTAgMGwxMCAtMTBNLTEwIC0xMGwyMCAyMCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMSkiIHN0cm9rZS13aWR0aD0iMiIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==');">
                     </div>
@@ -20,16 +20,16 @@
                     </div>
                     
                     <!-- Hero Text with Variable Font -->
-                    <h1 class="display-4 fw-bold mb-2 text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    <h1 class="display-3 fw-bold mb-2 text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                         <span class="gradient-text">Style Search</span>
                     </h1>
-                    <p class="lead text-white mb-4" style="text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                    <p class="lead text-muted mb-4">
                         AI-powered fashion analysis and personalized recommendations
                     </p>
                 </div>
                 
-                <!-- Content Area -->
-                <div class="p-4 text-center">
+                <!-- Content Area with Upload Card -->
+                <div class="px-4 pt-0 pb-4 text-center">
                     <!-- API Key Warning -->
                     <div id="apiKeyStatus" class="alert alert-warning mb-4 d-none" role="alert">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -41,16 +41,15 @@
                         </div>
                     </div>
                     
-                    <!-- Improved Upload Area with Neumorphism -->
-                    <div class="upload-area mb-4 p-5 rounded-4 d-flex flex-column align-items-center justify-content-center" id="upload-area" 
-                        style="background: linear-gradient(145deg, #1e1e1e, #252525); box-shadow: 8px 8px 16px #141414, -8px -8px 16px #2c2c2c; border: none;">
-                        <div class="upload-icon-container mb-3 p-3 rounded-circle" style="background: rgba(var(--bs-primary-rgb), 0.1);">
+                    <!-- Upload Card with Glassmorphism -->
+                    <div class="upload-area mb-4 d-flex flex-column align-items-center justify-content-center mx-auto" id="upload-area" style="max-width: 600px; margin-top: -50px;">
+                        <div class="upload-icon-container mb-3">
                             <i class="fas fa-cloud-upload-alt fa-4x text-primary"></i>
                         </div>
                         <p class="mb-3">Drag and drop an image here or click to browse</p>
                         <form id="uploadForm" enctype="multipart/form-data">
                             <input type="file" name="image" id="imageInput" accept="image/*" class="d-none">
-                            <button type="button" id="browseButton" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
+                            <button type="button" id="browseButton" class="btn btn-gradient btn-lg px-4 py-2 shadow-sm">
                                 <i class="fas fa-image me-2"></i>Browse Image
                             </button>
                         </form>
@@ -75,7 +74,7 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <button id="predictButton" class="btn btn-success btn-lg px-4 shadow-sm">
+                        <button id="predictButton" class="btn btn-gradient btn-lg px-4 shadow-sm">
                             <i class="fas fa-magic me-2"></i>Predict Style
                         </button>
                     </div>
@@ -88,8 +87,8 @@
             <div class="card-body">
                 <h3 class="card-title mb-4 text-center">Style Prediction</h3>
                 <div class="text-center mb-4">
-                    <div class="d-inline-block p-3 rounded-circle mb-3" style="background: linear-gradient(135deg, rgba(var(--bs-info-rgb), 0.2), rgba(var(--bs-primary-rgb), 0.2));">
-                        <i class="fas fa-tshirt fa-3x text-info"></i>
+                    <div class="d-inline-block p-3 rounded-circle mb-3" style="background: linear-gradient(135deg, rgba(138, 79, 255, 0.2), rgba(92, 122, 234, 0.2));">
+                        <i class="fas fa-tshirt fa-3x text-primary"></i>
                     </div>
                     <h4 id="predictedStyle" class="mb-2 fw-bold gradient-text">-</h4>
                     <p class="text-muted small">Based on your uploaded image</p>
@@ -119,16 +118,16 @@
                 <!-- Improved Style Analysis Card -->
                 <div class="mb-4">
                     <h5 class="mb-3">Style Analysis</h5>
-                    <div id="styleDescription" class="p-4 rounded-4" style="background: linear-gradient(145deg, #1e1e1e, #252525); box-shadow: inset 2px 2px 5px #161616, inset -2px -2px 5px #2a2a2a;">
+                    <div id="styleDescription" class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(6px); border: 1px solid rgba(255, 255, 255, 0.1);">
                         <p>Your fashion item or outfit has been analyzed using our hybrid AI system.</p>
                     </div>
                     
                     <!-- Attributes Section with new design -->
                     <div id="attributesSection" class="mt-3 d-none">
-                        <div class="card rounded-4 border-0" style="background: linear-gradient(145deg, #1e1e1e, #252525); box-shadow: 2px 2px 5px #161616, -2px -2px 5px #2a2a2a;">
+                        <div class="card rounded-4 border-0" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(6px); border: 1px solid rgba(255, 255, 255, 0.1);">
                             <div class="card-header d-flex justify-content-between align-items-center border-0 bg-transparent">
                                 <h6 class="mb-0">Garment Attributes</h6>
-                                <span id="confidenceScore" class="badge" style="background: linear-gradient(90deg, #4fc3f7, #7e57c2);">0% confidence</span>
+                                <span id="confidenceScore" class="badge" style="background: linear-gradient(90deg, #8A4FFF, #5C7AEA);">0% confidence</span>
                             </div>
                             <div class="card-body">
                                 <div class="row g-3" id="attributesList">
@@ -184,7 +183,7 @@
         
         <!-- Loading indicator with improved animation -->
         <div id="loadingIndicator" class="text-center d-none mb-4 p-4">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <div class="spinner-border" role="status" style="width: 3rem; height: 3rem; color: #8A4FFF;">
                 <span class="visually-hidden">Loading...</span>
             </div>
             <p class="mt-3 lead">Analyzing your image with AI...</p>
@@ -201,17 +200,17 @@
     <div class="col-md-4">
         <!-- Recent Styles Card -->
         <div class="card shadow-sm mb-4 border-0 rounded-4 overflow-hidden">
-            <div class="card-header bg-primary bg-gradient text-white border-0">
+            <div class="card-header" style="background: linear-gradient(90deg, #8A4FFF, #5C7AEA); color: white; border: none;">
                 <h4 class="card-title m-0 py-2"><i class="fas fa-history me-2"></i>Recent Styles</h4>
             </div>
             <div class="card-body p-0">
                 {% if recent_styles %}
                     <div class="list-group list-group-flush">
                         {% for style in recent_styles %}
-                        <div class="list-group-item bg-dark border-light-subtle d-flex align-items-center p-3">
+                        <div class="list-group-item border-light-subtle d-flex align-items-center p-3">
                             <div class="flex-shrink-0">
-                                <div class="rounded-circle bg-primary bg-opacity-10 p-2">
-                                    <i class="fas fa-tshirt text-primary"></i>
+                                <div class="rounded-circle p-2" style="background: rgba(138, 79, 255, 0.1);">
+                                    <i class="fas fa-tshirt" style="color: #8A4FFF;"></i>
                                 </div>
                             </div>
                             <div class="ms-3 flex-grow-1">
@@ -226,6 +225,9 @@
                     </div>
                 {% else %}
                     <div class="p-4 text-center">
+                        <div class="p-3 rounded-circle mx-auto mb-3" style="background: rgba(138, 79, 255, 0.1); width: fit-content;">
+                            <i class="fas fa-clock fa-2x" style="color: #8A4FFF;"></i>
+                        </div>
                         <p class="text-muted">No styles analyzed yet.<br>Upload your first image!</p>
                     </div>
                 {% endif %}
@@ -234,18 +236,18 @@
 
         <!-- Style Categories Card -->
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-            <div class="card-header bg-success bg-gradient text-white border-0">
+            <div class="card-header" style="background: linear-gradient(90deg, #5C7AEA, #4CC9F0); color: white; border: none;">
                 <h4 class="card-title m-0 py-2"><i class="fas fa-tags me-2"></i>Style Categories</h4>
             </div>
             <div class="card-body p-0">
                 <div class="p-3 d-flex flex-wrap gap-2">
                     {% for style in style_categories %}
-                    <span class="badge rounded-pill py-2 px-3" style="background: linear-gradient(135deg, rgba(103, 58, 183, 0.8), rgba(33, 150, 243, 0.8));">
+                    <span class="badge rounded-pill py-2 px-3">
                         <i class="fas fa-tag me-1 opacity-75"></i>{{ style }}
                     </span>
                     {% endfor %}
                 </div>
-                <div class="card-footer bg-dark text-center border-0">
+                <div class="card-footer text-center border-0">
                     <small class="text-muted">Our AI system can identify many more styles beyond these examples</small>
                 </div>
             </div>
