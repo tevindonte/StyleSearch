@@ -1,0 +1,76 @@
+Style Prediction
+Unclassified
+Based on your uploaded image
+
+Was this style prediction accurate?
+
+Style Analysis
+Complete Outfit Combinations
+One-click outfit suggestions that work with your item
+
+Spring Breeze Casual
+This look is perfect for a casual day out in the spring sun, offering a relaxed and breathable style with a touch of color.
+
+Components:
+Patterned short-sleeve shirt with zig-zag details
+Light wash denim jeans
+White canvas sneakers
+Black leather belt
+Classic wayfarer sunglasses
+Occasion: Ideal for a weekend brunch or a stroll in the park during a sunny spring day.
+Statement piece: Patterned short-sleeve shirt
+Tip: Roll up the sleeves for a more laid-back vibe and to keep cool.
+Urban Spring Vibes
+Spring Evening Chic
+Product Recommendations
+Items that match your style (affiliate links)
+
+No product recommendations available.
+
+i dont really see any ebay stuff
+|
+Style Prediction
+Unclassified
+Based on your uploaded image
+
+Was this style prediction accurate?
+
+Style Analysis
+Complete Outfit Combinations
+One-click outfit suggestions that work with your item
+
+April Weekend Casual
+A comfortable yet stylish outfit for weekend activities in the current weather
+
+Components:
+White t-shirt
+Jeans
+Sneakers
+Casual watch
+Minimal jewelry
+Light jacket
+Occasion: Weekend outings, casual meetups, outdoor activities
+Statement piece: Stylish sneakers
+Tip: Roll up the jeans slightly to create a more casual, relaxed look
+Seasonal Work Ensemble
+April Evening Style
+Product Recommendations
+Items that match your style (affiliate links)
+
+No product recommendations available.
+
+i uploaded 2 seperate images, both said unclassified as style which isnt good
+
+in addition, i think we are wasting the chatgpt tokens a bit listing stuff like this
+Complete Outfit Combinations
+One-click outfit suggestions that work with your item
+
+April Weekend Casual
+Seasonal Work Ensemble
+April Evening Style
+
+we dont want to return a bunch of words and waste token stuff which is money(we are trying to save knowing that useers are going to be generating alot of outfits before seeing our first dollar , we are using this information to create an outfit meaning, instead of words youre going to ebay picking all the right things for an outfit and returning them to userm like cluster of items for the fit(shirt etc depending on what image asked for) and more clusters of images. Less words more of what things look like
+
+in addition ebay isnt showing anything
+
+I went to chatgtp and for the unclassified the gave me - for that specific picture modern retro or contemporary vintage fashion style. Here’s a breakdown of why: so i am not sure why its shoiwing unclassified for images something must be broken
