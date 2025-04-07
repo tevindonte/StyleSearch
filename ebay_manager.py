@@ -16,10 +16,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# eBay API credentials
-EBAY_APP_ID = 'TevinPar-styledee-PRD-bf71a5462-a84df0a6'  # Hard-coded for production
-EBAY_CERT_ID = 'PRD-f71a54628496-f489-49b7-8570-1639'  # Hard-coded for production
-EBAY_DEV_ID = 'ce9d32ac-a185-4054-95ff-758e36e49aa8'  # Hard-coded for production
+# eBay API credentials from environment
+EBAY_APP_ID = os.environ.get('EBAY_APP_ID')
+EBAY_CERT_ID = os.environ.get('EBAY_CERT_ID') 
+EBAY_DEV_ID = os.environ.get('EBAY_DEV_ID')
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
