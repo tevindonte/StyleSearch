@@ -1,0 +1,61 @@
+ 
+To https://github.com/tevindonte/StyleSearch.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/tevindonte/StyleSearch.git'
+~/workspace$ git branch
+* main
+  replit-agent
+~/workspace$ ^C
+~/workspace$ git push --force origin main
+Enumerating objects: 70, done.
+Counting objects: 100% (70/70), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (52/52), done.
+Writing objects: 100% (55/55), 33.54 KiB | 5.59 MiB/s, done.
+Total 55 (delta 36), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (36/36), completed with 11 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: 976f69eaa39c9330af5c05413811ea7107da1c6a
+remote:            path: .env.backup:2
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/tevindonte/StyleSearch/security/secret-scanning/unblock-secret/2vNdb1KzSW6LBfDe7hO2UJoutFD
+remote:     
+remote:     
+remote:       —— eBay Sandbox Client ID (App ID) ———————————————————
+remote:        locations:
+remote:          - commit: 976f69eaa39c9330af5c05413811ea7107da1c6a
+remote:            path: .env.backup:15
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/tevindonte/StyleSearch/security/secret-scanning/unblock-secret/2vNdazvKnKWGK2uFEYXxAwoHNDl
+remote:     
+remote:     
+remote:       —— eBay Sandbox Client Secret (Cert ID) ——————————————
+remote:        locations:
+remote:          - commit: 976f69eaa39c9330af5c05413811ea7107da1c6a
+remote:            path: .env.backup:17
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/tevindonte/StyleSearch/security/secret-scanning/unblock-secret/2vNdawwKP0vlnuJ6QnjK3JKC29z
+remote:     
+remote: 
+remote: 
+To https://github.com/tevindonte/StyleSearch.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/tevindonte/StyleSearch.git'
+~/workspace$ 
