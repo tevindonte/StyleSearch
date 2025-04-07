@@ -692,7 +692,30 @@ def index():
         "Classic Preppy", "Gothic Romantic", "Asian Streetwear Fusion", "Cyberpunk Techwear"
     ]
     
-    return render_template('index.html', style_categories=style_categories)
+    # Get recent style predictions (limit to 6)
+    recent_styles = []
+    try:
+        recent_predictions = Prediction.query.order_by(Prediction.created_at.desc()).limit(6).all()
+        for prediction in recent_predictions:
+            # Format the created_at date
+            created_at = prediction.created_at.strftime('%b %d, %Y') if prediction.created_at else 'Unknown'
+            
+            # Get the confidence level
+            confidence_level = "High" if prediction.confidence_score and prediction.confidence_score > 80 else \
+                              "Medium" if prediction.confidence_score and prediction.confidence_score > 50 else "Low"
+            
+            # Create a style object for the template
+            recent_styles.append({
+                'id': prediction.id,
+                'primary_style': prediction.primary_style,
+                'created_at': created_at,
+                'confidence': confidence_level,
+                'image_path': prediction.image_path
+            })
+    except Exception as e:
+        logging.error(f"Error fetching recent styles: {str(e)}")
+    
+    return render_template('index.html', style_categories=style_categories, recent_styles=recent_styles)
 
 @app.route('/predict', methods=['POST'])
 def predict():
