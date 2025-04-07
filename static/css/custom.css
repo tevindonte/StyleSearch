@@ -94,3 +94,44 @@ h1, h2, h3, h4, h5, .display-4 {
     left: 0;
     top: 0;
 }
+
+/* Rounded corners everywhere */
+.card, .btn, .form-control, .alert, .badge {
+    border-radius: 0.75rem;
+}
+
+/* Navbar improvements */
+.navbar {
+    backdrop-filter: blur(10px);
+    background-color: rgba(33, 37, 41, 0.8) !important;
+}
+
+.navbar-brand img {
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Accordion styling */
+.accordion-button:not(.collapsed) {
+    background: linear-gradient(90deg, rgba(103, 58, 183, 0.1), rgba(33, 150, 243, 0.1));
+    color: #4fc3f7;
+}
+
+/* Improvements for forms */
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+}
+
+/* Footer styling */
+footer .social-icons a {
+    transition: all 0.3s ease;
+}
+
+footer .social-icons a:hover {
+    color: #4fc3f7 !important;
+    transform: translateY(-3px);
+}
