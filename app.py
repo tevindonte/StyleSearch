@@ -394,6 +394,31 @@ def generate_outfit_combinations(image, style_info):
         List of outfit combinations with descriptions and components
     """
     logging.debug("Generating context-aware outfit combinations")
+    
+    # Default fallback outfits in case of timeout
+    fallback_outfits = [
+        {
+            "name": "Classic Combination",
+            "description": "A timeless outfit that works for multiple occasions",
+            "components": ["White t-shirt", "Dark jeans", "Leather sneakers", "Minimal accessories"],
+            "occasion": "Casual outings and everyday wear",
+            "statement_piece": "Well-fitted denim",
+            "styling_tip": "Keep accessories minimal for a clean look"
+        }
+    ]
+    
+    try:
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError
+        with ThreadPoolExecutor() as executor:
+            future = executor.submit(lambda: _generate_outfits_with_openai(image, style_info))
+            try:
+                return future.result(timeout=30)  # 30 second timeout
+            except TimeoutError:
+                logging.warning("OpenAI request timed out, using fallback outfits")
+                return fallback_outfits
+    except Exception as e:
+        logging.error(f"Error generating outfits: {e}")
+        return fallback_outfits
     try:
         # Convert PIL Image to base64 string
         buffered = io.BytesIO()
