@@ -302,7 +302,7 @@ def load_user(user_id):
 
 def predict_style_with_openai(image):
     """
-    Uses OpenAI's GPT-4o with vision capabilities to predict the fashion style of an image.
+    Uses OpenAI's GPT-4o mini with vision capabilities to predict the fashion style of an image.
     
     Args:
         image: A PIL Image object
@@ -350,9 +350,9 @@ def predict_style_with_openai(image):
         - styling_tips: string (recommendations)
         """
         
-        # Call OpenAI API
+        # Call OpenAI API using GPT-4o mini for cost efficiency
         response = openai_client.chat.completions.create(
-            model="gpt-4o",  # The newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            model="gpt-4o-mini",  # Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary
             messages=[
                 {"role": "system", "content": """You are a professional fashion stylist with expertise in identifying clothing styles and providing fashion advice.
                 You specialize in identifying specific, niche, and emerging fashion styles rather than broad categories.
@@ -450,9 +450,9 @@ def generate_outfit_combinations(image, style_info):
         - styling_tip: One practical tip for wearing this outfit effectively
         """
         
-        # Call OpenAI API with enhanced prompt
+        # Call OpenAI API with enhanced prompt using GPT-4o mini for cost efficiency
         response = openai_client.chat.completions.create(
-            model="gpt-4o",  # The newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            model="gpt-4o-mini",  # Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary
             messages=[
                 {"role": "system", "content": """You are a professional fashion stylist specializing in seasonal outfit creation.
                 You have an expert eye for coordination, color matching, and creating cohesive looks appropriate for specific seasons and occasions.
@@ -535,7 +535,7 @@ def fetch_ebay_recommendations(style, limit=6, user_comments=''):
             # Use OpenAI to extract relevant keywords from user comments
             # This would help tailor the recommendations more accurately
             response = openai_client.chat.completions.create(
-                model="gpt-4o",  # The newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                model="gpt-4o-mini",  # Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary
                 messages=[
                     {"role": "system", "content": """You are a fashion search query expert.
                     Extract relevant fashion search keywords from user comments.

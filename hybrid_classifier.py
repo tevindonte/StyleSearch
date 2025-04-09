@@ -2,12 +2,13 @@
 Hybrid Style Classification System
 
 This module implements a multi-model approach to fashion style classification:
-1. ChatGPT-4o (Primary) - High-level style categorization and context awareness
+1. ChatGPT-4o mini (Primary) - High-level style categorization and context awareness
 2. CLIP (Secondary) - Image-text similarity matching for style verification
 3. Attribute detection (Tertiary) - Detailed clothing item recognition
 
 The system combines these models with appropriate weighting to provide
 comprehensive style analysis, recommendations, and outfit generation.
+Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary.
 """
 
 import base64
@@ -81,8 +82,9 @@ def preprocess_image(image):
 
 def analyze_with_gpt4o(base64_image):
     """
-    Primary analyzer using ChatGPT-4o vision capabilities with hybrid model integration.
+    Primary analyzer using ChatGPT-4o mini vision capabilities with hybrid model integration.
     Falls back to basic classification if OpenAI API is unavailable.
+    Uses GPT-4o mini for cost efficiency as lengthy outputs aren't necessary.
     
     Args:
         base64_image: Base64-encoded image string
@@ -105,11 +107,11 @@ def analyze_with_gpt4o(base64_image):
         raise ValueError("No image data provided")
         
     try:
-        logging.info("Starting GPT-4o analysis")
-        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
+        logging.info("Starting GPT-4o mini analysis")
+        # Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary
+        # This model is sufficient for our style classification needs
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -146,10 +148,10 @@ def analyze_with_gpt4o(base64_image):
         )
         
         style_data = json.loads(response.choices[0].message.content)
-        logging.info(f"GPT-4o analysis complete: {style_data}")
+        logging.info(f"GPT-4o mini analysis complete: {style_data}")
         return style_data
     except Exception as e:
-        logging.error(f"Error in GPT-4o analysis: {e}")
+        logging.error(f"Error in GPT-4o mini analysis: {e}")
         return {
             "primary_style": "Modern Casual",
             "style_tags": ["versatile", "timeless", "clean-cut", "contemporary"],
@@ -162,8 +164,8 @@ def analyze_with_gpt4o(base64_image):
 def extract_attributes(base64_image):
     """
     Extracts detailed clothing attributes using a DeepFashion-like approach.
-    Currently uses GPT-4o for attribute detection, but can be replaced with 
-    a specialized model in the future.
+    Currently uses GPT-4o mini for attribute detection, but can be replaced with 
+    a specialized model in the future. Uses mini variant for cost efficiency.
     
     Args:
         base64_image: Base64-encoded image string
@@ -172,10 +174,10 @@ def extract_attributes(base64_image):
         Dictionary with detailed clothing attributes
     """
     try:
-        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
+        # Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary
+        # This model is sufficient for our style classification needs
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -234,13 +236,13 @@ def combine_analysis(gpt4o_analysis, attribute_analysis):
     Combines analyses from different models with appropriate weighting.
     
     Args:
-        gpt4o_analysis: Results from ChatGPT-4o analysis
+        gpt4o_analysis: Results from ChatGPT-4o mini analysis
         attribute_analysis: Results from attribute detection
         
     Returns:
         Combined style analysis results
     """
-    # Start with GPT-4o's high-level analysis (highest weight)
+    # Start with GPT-4o mini's high-level analysis (highest weight)
     combined_result = {
         "primary_style": gpt4o_analysis.get("primary_style", "Undefined Style"),
         "style_tags": gpt4o_analysis.get("style_tags", []),
@@ -266,6 +268,7 @@ def combine_analysis(gpt4o_analysis, attribute_analysis):
 def generate_outfit_combinations(style_analysis, base64_image):
     """
     Generates more concise outfit combination suggestions to optimize token usage.
+    Uses GPT-4o mini for cost efficiency and more concise outputs.
     
     Args:
         style_analysis: Combined style analysis dictionary
@@ -280,10 +283,10 @@ def generate_outfit_combinations(style_analysis, base64_image):
         Tags: {', '.join(style_analysis['style_tags'][:3])}
         Item: {style_analysis['attributes'].get('garment_type', 'clothing item')}"""
         
-        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
+        # Using GPT-4o mini for cost efficiency as lengthy outputs aren't necessary
+        # This model is sufficient for our style classification needs
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -327,6 +330,7 @@ def generate_outfit_combinations(style_analysis, base64_image):
 def classify_fashion_style(image):
     """
     Main function for classifying fashion style using the hybrid approach.
+    Uses GPT-4o mini across all model functions for cost efficiency.
     
     Args:
         image: PIL Image object
@@ -341,7 +345,7 @@ def classify_fashion_style(image):
         # Preprocess the image
         _, base64_image = preprocess_image(image)
         
-        # Step 1: Get primary analysis from GPT-4o (highest weight)
+        # Step 1: Get primary analysis from GPT-4o mini (highest weight)
         gpt4o_analysis = analyze_with_gpt4o(base64_image)
     except Exception as e:
         print(f"Error in classify_fashion_style: {e}")
