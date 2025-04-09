@@ -145,12 +145,16 @@ class EbayManager:
         self.request_count += 1
         return True
 
+    # Simple in-memory cache for product searches
+    _cache = {}
+    _cache_ttl = 1800  # 30 minutes cache TTL
+
     def search_products(self, style, user_comments='', limit=6):
         """
-        Search for fashion products on eBay.
+        Search for fashion products on eBay with caching.
 
         Args:
-            style: Primary fashion style to search for
+            style: Primary fashion style to search for  
             user_comments: Optional user comments for refining search
             limit: Maximum number of products to return
 
@@ -160,6 +164,17 @@ class EbayManager:
         if not self.connection_available or self.api is None:
             logger.error("eBay API connection not available")
             return []
+
+        # Generate cache key
+        cache_key = f"{style}:{limit}"
+        
+        # Check cache
+        now = datetime.datetime.now()
+        if cache_key in self._cache:
+            cached_time, cached_data = self._cache[cache_key]
+            if (now - cached_time).total_seconds() < self._cache_ttl:
+                logger.info(f"Returning cached results for {style}")
+                return cached_data
 
         # Create the search query with better keyword optimization for fashion
         search_query = f"{style} clothing fashion"
@@ -278,13 +293,27 @@ class EbayManager:
                     logger.error(f"Error parsing product data: {e}")
                     continue
 
+            # Cache successful results
+            if products:
+                self._cache[cache_key] = (now, products)
+                logger.info(f"Cached {len(products)} products for {style}")
             return products
 
         except ConnectionError as e:
             logger.error(f"eBay API connection error: {e}")
+            # Return cached results if available when API fails
+            if cache_key in self._cache:
+                _, cached_data = self._cache[cache_key]
+                logger.info("Returning cached results due to API error")
+                return cached_data
             return []
         except Exception as e:
             logger.error(f"Error searching eBay products: {e}")
+            # Return cached results if available when API fails
+            if cache_key in self._cache:
+                _, cached_data = self._cache[cache_key]
+                logger.info("Returning cached results due to error")
+                return cached_data
             return []
 
     def add_affiliate_tracking(self, url, item_id=None, style=None):
