@@ -124,11 +124,13 @@ class EbayManager:
                 logger.warning(f"API in cooldown until {self.cooldown_until}")
                 return False
             else:
-                # Cooldown period over, reset counters
-                logger.info("API cooldown period ended, resetting counters")
+                # Cooldown period over, reset counters with longer cooldown
+                logger.info("API cooldown period ended, resetting counters with extended cooldown")
                 self.cooldown_active = False
-                self.request_count = 0
+                self.request_count = 0 
                 self.last_request_time = now
+                self.max_requests_per_hour = max(100, self.max_requests_per_hour // 2)  # Reduce limit
+                logger.info(f"Adjusted rate limit to {self.max_requests_per_hour} requests per hour")
                 
         # Check if an hour has passed since the first request
         hour_ago = now - datetime.timedelta(hours=1)
@@ -140,8 +142,15 @@ class EbayManager:
         # Check if we've hit the limit
         if self.request_count >= self.max_requests_per_hour:
             logger.warning("API rate limit reached, entering cooldown")
+            # Implement exponential backoff
+            if not hasattr(self, 'cooldown_duration'):
+                self.cooldown_duration = 5  # Start with 5 minutes
+            else:
+                self.cooldown_duration = min(60, self.cooldown_duration * 2)  # Double duration, max 1 hour
+                
             self.cooldown_active = True
-            self.cooldown_until = now + datetime.timedelta(minutes=5)  # 5-minute cooldown
+            self.cooldown_until = now + datetime.timedelta(minutes=self.cooldown_duration)
+            logger.warning(f"Rate limit reached. Entering {self.cooldown_duration}-minute cooldown")
             return False
             
         # Increment the counter and allow the request
