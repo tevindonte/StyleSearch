@@ -57,22 +57,9 @@ class EbayManager:
             )
             logger.info("Initialized eBay API client in production mode")
 
-            # Test connection with a minimal query to validate credentials
-            try:
-                test_response = self.api.execute('findItemsByKeywords', {
-                    'keywords': 'test',
-                    'paginationInput': {'entriesPerPage': 1, 'pageNumber': 1}
-                })
-
-                if test_response.reply.ack == 'Success':
-                    logger.info("eBay API connection test successful")
-                    self.connection_available = True
-                else:
-                    logger.warning(f"eBay API connection test returned status: {test_response.reply.ack}")
-                    self.connection_available = False
-            except Exception as test_error:
-                logger.error(f"eBay API connection test failed: {test_error}")
-                self.connection_available = False
+            # Skip test call to save API quota
+            self.connection_available = True
+            logger.info("eBay API client initialized (skipping test call)")
 
         except ConnectionError as e:
             logger.error(f"Failed to initialize eBay API client: {e}")
